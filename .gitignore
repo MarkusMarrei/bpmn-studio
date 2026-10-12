@@ -35,3 +35,5 @@ models/
 *.bin
 config.json
 backend/bin/
+
+push.bat
