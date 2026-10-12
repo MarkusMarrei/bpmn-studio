@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Environment variables and local configs
+.env
+.env.local
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE and editor files
+.idea/
+.vscode/
+
+# Local LLM weights and runtime config
+models/
+*.gguf
+*.bin
+config.json
+backend/bin/

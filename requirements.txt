@@ -1,0 +1,12 @@
+# Основные зависимости веб-сервера и API
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.9
+pydantic>=2.0.0
+requests>=2.28.0
+urllib3>=1.26.0
+
+# Извлечение текста из документов
+pypdf>=3.17.0
+pymupdf>=1.23.0
+python-docx>=1.1.0

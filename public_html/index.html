@@ -1,0 +1,4601 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BPMN Studio — AI BPMN Generator</title>
+
+  <!-- BPMN.js Modeler CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/bpmn-js.css">
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/diagram-js.css">
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/bpmn-font/css/bpmn.css">
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Светлая монохромная тема */
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-subtle: #cbd5e1;
+      
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-soft: #94a3b8;
+
+      --accent-energy: #0284c7;
+      --accent-energy-bg: rgba(2, 132, 199, 0.08);
+      --accent-success: #10b981;
+      --accent-success-bg: rgba(16, 185, 129, 0.1);
+      --accent-warning: #d97706;
+      --accent-warning-bg: rgba(217, 119, 6, 0.12);
+      --accent-error: #ef4444;
+      --accent-error-bg: rgba(239, 68, 68, 0.1);
+
+      --btn-primary-bg: #0f172a;
+      --btn-primary-text: #ffffff;
+      --btn-primary-hover: #1e293b;
+
+      --card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 10px 15px -5px rgba(0,0,0,0.04);
+      --canvas-bg: #ffffff;
+      --canvas-grid: #e2e8f0;
+    }
+
+    [data-theme="dark"] {
+      --bg-base: #090d16;
+      --bg-surface: #111726;
+      --bg-surface-subtle: #1a2234;
+      --border-color: #1e293b;
+      --border-subtle: #334155;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-soft: #64748b;
+
+      --accent-energy: #38bdf8;
+      --accent-energy-bg: rgba(56, 189, 248, 0.12);
+      --accent-success: #34d399;
+      --accent-success-bg: rgba(52, 211, 153, 0.15);
+      --accent-warning: #f59e0b;
+      --accent-warning-bg: rgba(245, 158, 11, 0.15);
+      --accent-error: #f87171;
+      --accent-error-bg: rgba(248, 113, 113, 0.15);
+
+      --btn-primary-bg: #f8fafc;
+      --btn-primary-text: #090d16;
+      --btn-primary-hover: #e2e8f0;
+
+      --card-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      --canvas-bg: #0e1422;
+      --canvas-grid: #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* HEADER */
+    header {
+      height: 56px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 40;
+      flex-shrink: 0;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+
+    .brand-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--accent-energy-bg);
+      color: var(--accent-energy);
+      padding: 3px 8px;
+      border-radius: 5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Мобильные вкладки */
+    .mobile-nav-tabs {
+      display: none;
+      background: var(--bg-surface-subtle);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mobile-nav-tab {
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .mobile-nav-tab.active {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-surface-subtle);
+      border-color: var(--border-subtle);
+    }
+
+    /* MAIN WORKSPACE */
+    .app-workspace {
+      flex: 1;
+      display: flex;
+      height: calc(100vh - 56px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR: INTERACTIVE COPILOT CHAT */
+    aside#sidebar {
+      width: 480px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+      flex-shrink: 0;
+      height: 100%;
+    }
+
+    .sidebar-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+    }
+
+    .sidebar-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      line-height: 1;
+    }
+
+    .status-pill.ready {
+      background: var(--bg-surface-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .status-pill.warning {
+      background: var(--accent-warning-bg);
+      color: var(--accent-warning);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      animation: pulseWarning 2s infinite ease-in-out;
+    }
+
+    .status-pill.complete {
+      background: var(--accent-success-bg);
+      color: var(--accent-success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    @keyframes pulseWarning {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    .btn-reset-chat {
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-reset-chat:hover {
+      background: var(--bg-surface-subtle);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    /* CHAT STREAM */
+    #chatMessages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-bubble {
+      display: flex;
+      flex-direction: column;
+      max-width: 96%;
+      gap: 6px;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* User Message */
+    .chat-bubble.user {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .chat-bubble.user .bubble-body {
+      background: var(--accent-energy);
+      color: #ffffff;
+      padding: 11px 15px;
+      border-radius: 14px 14px 3px 14px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .chat-bubble.user .bubble-meta {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      padding-right: 4px;
+    }
+
+    /* Assistant Message */
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .chat-bubble.assistant .bubble-body {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 14px 14px 14px 3px;
+      padding: 14px 16px;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .assistant-status-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.84rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .assistant-status-tag.complete {
+      background: var(--accent-success-bg);
+      color: var(--accent-success);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .assistant-status-tag.warning {
+      background: var(--accent-warning-bg);
+      color: var(--accent-warning);
+      border: 1px solid rgba(217, 119, 6, 0.25);
+    }
+
+    .assistant-summary {
+      color: var(--text-main);
+      font-size: 0.86rem;
+    }
+
+    /* Issues block */
+    .issues-card {
+      background: var(--bg-surface-subtle);
+      border-radius: 8px;
+      border: 1px dashed rgba(217, 119, 6, 0.4);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .issues-card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--accent-warning);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .issues-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .issue-item {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.35;
+    }
+
+    .issue-item::before {
+      content: "•";
+      color: var(--accent-warning);
+      font-weight: bold;
+    }
+
+    /* Questions & Quick Replies */
+    .questions-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .question-block {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .question-text {
+      font-weight: 600;
+      font-size: 0.84rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-replies-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .quick-reply-chip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .quick-reply-chip:hover {
+      background: var(--accent-energy-bg);
+      border-color: var(--accent-energy);
+      color: var(--accent-energy);
+      transform: translateY(-1px);
+    }
+
+    /* Starter Template Chips */
+    .starters-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .starter-chip {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+
+    .starter-chip strong {
+      display: block;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .starter-chip span {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+    }
+
+    .starter-chip:hover {
+      background: var(--accent-energy-bg);
+      border-color: var(--accent-energy);
+    }
+
+    /* Thinking indicator */
+    .thinking-bubble {
+      display: none;
+      align-self: flex-start;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px 14px 14px 3px;
+      padding: 12px 16px;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      box-shadow: var(--card-shadow);
+    }
+
+    .thinking-bubble.active {
+      display: flex;
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .typing-dots span {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-energy);
+      border-radius: 50%;
+      animation: typingPulse 1.2s infinite ease-in-out both;
+    }
+
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typingPulse {
+      0%, 80%, 100% { transform: scale(0.4); opacity: 0.3; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* CHAT INPUT AREA */
+    .chat-input-bar {
+      border-top: 1px solid var(--border-color);
+      padding: 12px 16px 14px 16px;
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .file-attachment-chip {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--accent-energy-bg);
+      border: 1px solid rgba(2, 132, 199, 0.25);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      color: var(--text-main);
+    }
+
+    .file-attachment-chip.active {
+      display: flex;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px 10px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input-row:focus-within {
+      border-color: var(--accent-energy);
+      box-shadow: 0 0 0 3px var(--accent-energy-bg);
+      background: var(--bg-surface);
+    }
+
+    .btn-attach {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-attach:hover {
+      color: var(--accent-energy);
+      background: var(--accent-energy-bg);
+    }
+
+    textarea#chatInput {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      resize: none;
+      max-height: 140px;
+      min-height: 24px;
+      padding: 4px 2px;
+    }
+
+    .btn-send {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      background: var(--btn-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .input-hint {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    /* CANVAS AREA */
+    main#canvas-container {
+      flex: 1;
+      position: relative;
+      background: var(--canvas-bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* CANVAS TOP TOOLBAR */
+    .canvas-toolbar {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      left: 76px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 4px 8px;
+      border-radius: 10px;
+      box-shadow: var(--card-shadow);
+      pointer-events: auto;
+    }
+
+    .tool-btn {
+      padding: 5px 11px;
+      height: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .tool-btn:hover {
+      background: var(--bg-surface-subtle);
+      border-color: var(--border-color);
+    }
+
+    .tool-btn.primary {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+    }
+
+    .tool-btn.primary:hover {
+      background: var(--btn-primary-hover);
+    }
+
+    .view-switcher {
+      display: flex;
+      background: var(--bg-surface-subtle);
+      padding: 3px;
+      border-radius: 8px;
+      gap: 3px;
+    }
+
+    .view-tab {
+      padding: 4px 11px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .view-tab.active {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .view-tab .badge-count {
+      background: var(--accent-warning);
+      color: #ffffff;
+      font-size: 0.68rem;
+      padding: 1px 5px;
+      border-radius: 10px;
+    }
+
+    /* BPMN CANVAS */
+    #canvas {
+      width: 100%;
+      height: 100%;
+      background: var(--canvas-bg);
+    }
+
+    /* CODE OVERLAY */
+    #code-overlay {
+      display: none;
+      position: absolute;
+      inset: 64px 16px 16px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      z-index: 20;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #code-overlay.active {
+      display: flex;
+    }
+
+    .code-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface-subtle);
+    }
+
+    .code-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    pre.code-content {
+      flex: 1;
+      padding: 16px;
+      overflow: auto;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: var(--text-main);
+      background: var(--bg-surface);
+    }
+
+    /* AUDIT OVERLAY (TAB 2: ЛОГИЧЕСКИЙ АУДИТ) */
+    #audit-overlay {
+      display: none;
+      position: absolute;
+      inset: 64px 16px 16px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      z-index: 20;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #audit-overlay.active {
+      display: flex;
+    }
+
+    .audit-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .audit-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-val {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .kpi-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .audit-section-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .audit-section-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* STYLING FOR BPMN-JS WARNING NODES & TEXT */
+    /* Текстовые метки условий Да/Нет с защитным контуром (halo) */
+    .djs-label text,
+    text.djs-label,
+    .djs-label tspan,
+    .djs-element.djs-connection text {
+      paint-order: stroke fill !important;
+      stroke: #ffffff !important;
+      stroke-width: 4px !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+
+    /* Полностью скрываем пиктограммы типов задач (человечков и шестеренки), чтобы текст никогда не перекрывался */
+    .djs-element.djs-shape[data-element-id*="Task"] .djs-visual > path:not([d*="M"]),
+    .djs-element.djs-shape[data-element-id*="Activity"] .djs-visual > path:not([d*="M"]),
+    .djs-element.djs-shape path.djs-icon,
+    .djs-element [data-marker] {
+      display: none !important;
+    }
+
+    /* Комфортная типографика внутри блоков задач BPMN: предотвращение переполнения и комфортные поля */
+    .djs-shape[data-element-id*="Activity"] text,
+    .djs-shape[data-element-id*="Task"] text {
+      font-size: 11px !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Заголовки дорожек */
+    .djs-shape[data-element-id*="Participant"] text,
+    .djs-shape[data-element-id*="Lane"] text {
+      font-family: var(--font-sans) !important;
+      font-size: 11.5px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.03em !important;
+    }
+
+    /* Выделение спорных и непроверенных узлов [❓] пунктиром */
+    .djs-element [stroke="#d97706"] {
+      stroke-dasharray: 4, 3 !important;
+      stroke-width: 2.2px !important;
+    }
+
+    .djs-element.djs-connection [stroke="#d97706"] {
+      stroke-dasharray: 4, 4 !important;
+      stroke-width: 1.8px !important;
+    }
+
+    /* Чёткое контрастное отображение подписей стрелок без наплывов */
+    .djs-label text,
+    .djs-label tspan {
+      paint-order: stroke fill !important;
+      stroke: #ffffff !important;
+      stroke-width: 5px !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+
+    /* Тёмная тема для векторной части схемы */
+    [data-theme="dark"] .djs-container > svg {
+      filter: invert(0.92) hue-rotate(180deg);
+    }
+
+    [data-theme="dark"] .djs-container image {
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    /* Тёмная тема для контекстного меню, палитры и кнопок действий bpmn-js */
+    [data-theme="dark"] .djs-context-pad .entry {
+      background-color: #1e293b !important;
+      border: 1px solid #475569 !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+      border-radius: 4px !important;
+    }
+
+    [data-theme="dark"] .djs-context-pad .entry:hover {
+      background-color: #334155 !important;
+      border-color: #38bdf8 !important;
+    }
+
+    [data-theme="dark"] .djs-context-pad .entry::before,
+    [data-theme="dark"] .djs-context-pad .entry svg {
+      color: #f1f5f9 !important;
+      fill: #f1f5f9 !important;
+    }
+
+    [data-theme="dark"] .djs-context-pad .entry:hover::before,
+    [data-theme="dark"] .djs-context-pad .entry:hover svg {
+      color: #38bdf8 !important;
+      fill: #38bdf8 !important;
+    }
+
+    [data-theme="dark"] .djs-palette {
+      background-color: #1e293b !important;
+      border: 1px solid #475569 !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    [data-theme="dark"] .djs-palette .entry {
+      color: #f1f5f9 !important;
+    }
+
+    [data-theme="dark"] .djs-palette .entry:hover {
+      color: #38bdf8 !important;
+    }
+
+    [data-theme="dark"] .djs-popup {
+      background-color: #1e293b !important;
+      border: 1px solid #475569 !important;
+      color: #f1f5f9 !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65) !important;
+    }
+
+    [data-theme="dark"] .djs-popup .entry {
+      color: #f1f5f9 !important;
+    }
+
+    [data-theme="dark"] .djs-popup .entry:hover {
+      background-color: #334155 !important;
+      color: #38bdf8 !important;
+    }
+
+    /* Мобильная адаптация */
+    @media (max-width: 900px) {
+      .mobile-nav-tabs {
+        display: flex;
+      }
+
+      aside#sidebar {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 35;
+        display: none;
+      }
+
+      aside#sidebar.mobile-visible {
+        display: flex;
+      }
+
+      main#canvas-container {
+        width: 100%;
+      }
+
+      .canvas-toolbar {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        left: 16px;
+      }
+    }
+
+    /* =========================================================================
+       КНОПКА ВЫБОРА LLM В ХЕДЕРЕ
+       ========================================================================= */
+    .llm-select-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 5px 12px 5px 10px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: left;
+      user-select: none;
+    }
+
+    .llm-select-btn:hover {
+      background: var(--bg-surface);
+      border-color: var(--accent-energy);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .llm-btn-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .llm-btn-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .llm-btn-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-main);
+      max-width: 170px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .llm-btn-sub {
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .llm-btn-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-success);
+      box-shadow: 0 0 6px var(--accent-success);
+      margin-left: 2px;
+      transition: background 0.2s ease;
+    }
+
+    .llm-btn-dot.downloading {
+      background: var(--accent-warning);
+      box-shadow: 0 0 6px var(--accent-warning);
+      animation: pulse-dot 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* =========================================================================
+       МОДАЛЬНОЕ ОКНО LLM И СКАНИРОВАНИЯ ПК
+       ========================================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    .modal-backdrop.open,
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--bg-surface);
+    }
+
+    .modal-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .modal-icon-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: var(--accent-energy-bg);
+      color: var(--accent-energy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .modal-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all 0.15s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--accent-error-bg);
+      color: var(--accent-error);
+      border-color: var(--accent-error);
+    }
+
+    /* АППАРАТНЫЙ СКАНЕР (HARDWARE DIAGNOSTIC) */
+    .hw-scanner-card {
+      margin: 16px 22px 0 22px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hw-scanner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hw-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .hw-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--accent-energy-bg);
+      color: var(--accent-energy);
+      letter-spacing: 0.02em;
+    }
+
+    .hw-refresh-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .hw-refresh-btn:hover {
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+      background: var(--bg-base);
+    }
+
+    .hw-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .hw-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .hw-metric-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hw-metric-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .hw-metric-val {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hw-metric-sub {
+      font-size: 0.68rem;
+      color: var(--text-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ВКЛАДКИ МОДАЛКИ */
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 22px;
+      margin-top: 14px;
+      gap: 16px;
+    }
+
+    .modal-tab {
+      padding: 10px 4px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .modal-tab:hover {
+      color: var(--text-main);
+    }
+
+    .modal-tab.active {
+      color: var(--accent-energy);
+      border-bottom-color: var(--accent-energy);
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* БАННЕР СКАЧИВАНИЯ */
+    .download-banner {
+      background: var(--accent-energy-bg);
+      border: 1px solid var(--accent-energy);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: modalSlideUp 0.2s ease;
+    }
+
+    .dl-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .dl-title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dl-spinner {
+      font-size: 1.25rem;
+      display: inline-block;
+      animation: spin 2s infinite linear;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .dl-model-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .dl-stats-text {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .dl-cancel-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--accent-error);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .dl-cancel-btn:hover {
+      background: var(--accent-error-bg);
+      border-color: var(--accent-error);
+    }
+
+    .dl-progress-track {
+      width: 100%;
+      height: 7px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .dl-progress-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .dl-progress-fill {
+      height: 100%;
+      background: var(--accent-energy);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .download-banner.download-error {
+      background: var(--accent-error-bg);
+      border-color: var(--accent-error);
+    }
+
+    .download-banner.download-error .dl-progress-fill {
+      background: var(--accent-error);
+    }
+
+    .download-banner.download-completed {
+      background: var(--accent-success-bg);
+      border-color: var(--accent-success);
+    }
+
+    .download-banner.download-completed .dl-progress-fill {
+      background: var(--accent-success);
+    }
+
+    /* СПИСОК КАРТОЧЕК МОДЕЛЕЙ */
+    .models-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .model-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .model-card:hover {
+      border-color: var(--border-subtle);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .model-card.active-model {
+      border: 1.5px solid var(--accent-success);
+      background: var(--accent-success-bg);
+    }
+
+    .model-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .model-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .model-name {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .model-badge-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    .model-compat-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .compat-recommended {
+      background: var(--accent-success-bg);
+      color: var(--accent-success);
+      border: 1px solid var(--accent-success);
+    }
+
+    .compat-compatible {
+      background: var(--accent-warning-bg);
+      color: var(--accent-warning);
+      border: 1px solid var(--accent-warning);
+    }
+
+    .compat-insufficient {
+      background: var(--accent-error-bg);
+      color: var(--accent-error);
+      border: 1px solid var(--accent-error);
+    }
+
+    .model-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .model-specs-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 0.74rem;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      background: var(--bg-surface-subtle);
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border-color);
+    }
+
+    .model-spec-val {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .model-card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-model-action {
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+    }
+
+    .btn-model-download {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+    }
+
+    .btn-model-download:hover {
+      background: var(--btn-primary-hover);
+    }
+
+    .btn-model-activate {
+      background: var(--accent-energy);
+      color: #ffffff;
+    }
+
+    .btn-model-activate:hover {
+      opacity: 0.9;
+    }
+
+    .btn-model-active {
+      background: var(--accent-success);
+      color: #ffffff;
+      cursor: default;
+    }
+
+    .btn-model-delete {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 5px 9px;
+      font-size: 0.74rem;
+    }
+
+    .btn-model-delete:hover {
+      background: var(--accent-error-bg);
+      color: var(--accent-error);
+      border-color: var(--accent-error);
+    }
+
+    /* ЭНДПОИНТ ФОРМА */
+    .endpoint-form-card {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .endpoint-info-notice {
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      background: var(--accent-energy-bg);
+      border: 1px solid var(--accent-energy);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .form-input {
+      padding: 9px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.86rem;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent-energy);
+      box-shadow: 0 0 0 3px var(--accent-energy-bg);
+    }
+
+    .form-help {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .form-help code {
+      font-family: var(--font-mono);
+      background: var(--bg-surface);
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .endpoint-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .btn-save-endpoint {
+      padding: 9px 18px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border: none;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .btn-save-endpoint:hover {
+      background: var(--btn-primary-hover);
+    }
+
+    .save-status-msg {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-success);
+    }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+    }
+
+    .footer-note {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .footer-note code {
+      font-family: var(--font-mono);
+      background: var(--bg-surface-subtle);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-close-modal {
+      padding: 7px 18px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-close-modal:hover {
+      background: var(--border-color);
+    }
+
+    /* =========================================================================
+       КНОПКА ВЫБОРА ЯЗЫКА В ХЕДЕРЕ
+       ========================================================================= */
+    .lang-select-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      height: 38px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .lang-select-btn:hover {
+      background: var(--bg-surface);
+      border-color: var(--accent-energy);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .lang-btn-flag {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .lang-btn-code {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .lang-btn-arrow {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-left: 1px;
+    }
+
+    /* МОДАЛЬНОЕ ОКНО ВЫБОРА ЯЗЫКА */
+    .lang-modal-card {
+      max-width: 580px;
+    }
+
+    .lang-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 22px 20px 22px;
+    }
+
+    .lang-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 13px 18px;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .lang-card:hover {
+      border-color: var(--accent-energy);
+      background: var(--bg-surface-subtle);
+      transform: translateY(-1px);
+    }
+
+    .lang-card.selected {
+      border-color: var(--accent-energy);
+      background: var(--accent-energy-bg);
+      box-shadow: 0 0 0 1px var(--accent-energy);
+    }
+
+    .lang-card-flag {
+      font-size: 2.1rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    .lang-card-content {
+      flex: 1;
+    }
+
+    .lang-card-name {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-card-code {
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    .lang-card-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .lang-card-check {
+      display: none;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-energy);
+    }
+
+    .lang-card.selected .lang-card-check {
+      display: block;
+    }
+
+    .btn-primary-action {
+      padding: 9px 22px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border: none;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .btn-primary-action:hover {
+      background: var(--btn-primary-hover);
+      transform: translateY(-1px);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ВЕРХНЯЯ ШАПКА -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-badge">⚡</div>
+      <div>
+        <div class="brand-title">
+          BPMN Studio
+          <span class="brand-tag">AI Generator</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Мобильные вкладки -->
+    <div class="mobile-nav-tabs">
+      <button class="mobile-nav-tab active" id="tab-btn-panel" onclick="switchMobileView('panel')">💬 Диалог</button>
+      <button class="mobile-nav-tab" id="tab-btn-diagram" onclick="switchMobileView('diagram')">📊 Схема</button>
+    </div>
+
+    <div class="header-actions">
+      <!-- Кнопка выбора языка -->
+      <button class="lang-select-btn" onclick="openLangModal()" id="langSelectBtn" title="Сменить язык / Switch language">
+        <span class="lang-btn-flag" id="headerLangFlag">🇷🇺</span>
+        <span class="lang-btn-code" id="headerLangCode">RU</span>
+        <span class="lang-btn-arrow">▾</span>
+      </button>
+
+      <!-- Кнопка выбора / статуса LLM нейросети -->
+      <button class="llm-select-btn" onclick="openModelModal()" id="llmSelectBtn" title="Выбрать нейросеть или подключить API">
+        <span class="llm-btn-icon">🧠</span>
+        <div class="llm-btn-info">
+          <span class="llm-btn-title" id="currentModelLabel">Выбрать LLM</span>
+          <span class="llm-btn-sub" id="currentModelSub">Модель не выбрана</span>
+        </div>
+        <span class="llm-btn-dot" id="llmStatusDot"></span>
+      </button>
+
+      <!-- Переключатель светлой/тёмной темы -->
+      <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Сменить тему">
+        <svg id="themeIconSun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none">
+          <circle cx="12" cy="12" r="5"></circle>
+          <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+        </svg>
+        <svg id="themeIconMoon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- РАБОЧАЯ ОБЛАСТЬ -->
+  <div class="app-workspace">
+    
+    <!-- ЛЕВАЯ ПАНЕЛЬ: ИНТЕРАКТИВНЫЙ AI-ДИАЛОГ -->
+    <aside id="sidebar" class="mobile-visible">
+      
+      <!-- Шапка диалога -->
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <span>AI-Бизнес-Аналитик</span>
+          <span id="overallStatusBadge" class="status-pill ready">🟢 Готов к работе</span>
+        </div>
+        <button class="btn-reset-chat" onclick="resetConversation()" title="Сбросить историю и начать процесс заново">
+          🔄 Новый процесс
+        </button>
+      </div>
+
+      <!-- Лента сообщений чата -->
+      <div id="chatMessages">
+        
+        <!-- Приветственное сообщение -->
+        <div class="chat-bubble assistant">
+          <div class="bubble-body">
+            <div class="assistant-status-tag complete">
+              <span>🤖</span>
+              <span>Режим интерактивного аудита и моделирования</span>
+            </div>
+            <div class="assistant-summary">
+              Здравствуйте! Я ваш ИИ-ассистент по бизнес-процессам. Опишите регламент простыми словами или прикрепите документ (Word, PDF, TXT).
+              <br><br>
+              Я проверю логику, выявлю пропущенные шаги или зоны ответственности и построю BPMN-схему в стандарте <strong>OMG BPMN 2.0</strong>.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Индикатор размышлений ИИ -->
+      <div class="thinking-bubble" id="chatThinking">
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span id="thinkingText">ИИ проверяет логику регламента и рассчитывает топологию BPMN...</span>
+      </div>
+
+      <!-- Нижняя строка ввода сообщения -->
+      <div class="chat-input-bar">
+        
+        <!-- Бейдж прикрепленного файла -->
+        <div class="file-attachment-chip" id="fileChip">
+          <span id="fileChipName">📄 Регламент.pdf</span>
+          <button style="background:none; border:none; cursor:pointer; font-size:12px; color:var(--accent-error);" onclick="clearAttachedFile()">✕</button>
+        </div>
+
+        <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none" onchange="handleFileUpload(event)">
+
+        <div class="input-row">
+          <button class="btn-attach" onclick="document.getElementById('fileInput').click()" title="Прикрепить регламент (PDF, Word, TXT)">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"></path>
+            </svg>
+          </button>
+          <textarea id="chatInput" placeholder="Опишите процесс или ответьте на уточняющий вопрос..." rows="1"></textarea>
+          <button class="btn-send" id="btnSend" onclick="handleSendClick()" title="Отправить (Enter)">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="input-hint">
+          <span>Enter — отправить, Shift+Enter — перенос строки</span>
+          <span id="charCount">0 симв.</span>
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- ПРАВАЯ ОБЛАСТЬ: ХОЛСТ И АУДИТ -->
+    <main id="canvas-container">
+      
+      <!-- ТУЛБАР ХОЛСТА -->
+      <div class="canvas-toolbar">
+        
+        <!-- Вкладки: Схема / Логический аудит / XML / Python DSL -->
+        <div class="toolbar-group">
+          <div class="view-switcher">
+            <button class="view-tab active" id="tab-canvas" onclick="switchView('canvas')">
+              <span>📊 Схема</span>
+            </button>
+            <button class="view-tab" id="tab-audit" onclick="switchView('audit')">
+              <span>📋 Логический аудит</span>
+              <span class="badge-count" id="auditBadgeCount" style="display:none">0</span>
+            </button>
+            <button class="view-tab" id="tab-dsl" onclick="switchView('dsl')">
+              <span>🐍 Python-код</span>
+            </button>
+            <button class="view-tab" id="tab-xml" onclick="switchView('xml')">
+              <span>📄 BPMN XML</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Кнопки зума и экспорта -->
+        <div class="toolbar-group">
+          <button class="tool-btn" onclick="zoomIn()" title="Приблизить">🔍+</button>
+          <button class="tool-btn" onclick="zoomOut()" title="Отдалить">🔍-</button>
+          <button class="tool-btn" onclick="fitView()" title="Центрировать схему по экрану">🎯 Центрировать</button>
+          <div style="width:1px; height:18px; background:var(--border-color); margin:0 2px;"></div>
+          <button class="tool-btn" onclick="downloadPython()" title="Скачать исполняемый Python-код генерации процесса (.py)">🐍 .py</button>
+          <button class="tool-btn primary" onclick="downloadBPMN()" title="Скачать BPMN 2.0 XML с цветовыми маркерами спорных узлов">💾 .bpmn</button>
+          <button class="tool-btn" onclick="exportSVG()" title="Экспортировать векторный рисунок SVG с подсветкой спорных узлов">🖼 SVG</button>
+          <button class="tool-btn" onclick="openBpmnIo()" title="Открыть схему в официальном редакторе bpmn.io">↗ bpmn.io</button>
+        </div>
+
+      </div>
+
+      <!-- Холст bpmn-js -->
+      <div id="canvas"></div>
+
+      <!-- ВКЛАДКА 2: ОВЕРЛЕЙ ЛОГИЧЕСКОГО АУДИТА (WOW-FEATURE) -->
+      <div id="audit-overlay">
+        <div class="code-header">
+          <span class="code-title" style="color:var(--text-main); font-weight:700;">📋 Отчет аудита бизнес-логики и регламента</span>
+          <button class="tool-btn" onclick="downloadAuditReport()">📥 Скачать протокол (.txt)</button>
+        </div>
+        <div class="audit-body" id="auditBodyContent">
+          <!-- Заполняется динамически функцией renderAuditTab() -->
+        </div>
+      </div>
+
+      <!-- Оверлей просмотра XML / Python кода -->
+      <div id="code-overlay">
+        <div class="code-header">
+          <span class="code-title" id="codeOverlayTitle">BPMN 2.0 XML</span>
+          <div style="display:flex; gap:6px;">
+            <button class="tool-btn" id="btnDownloadPy" onclick="downloadPython()" style="display:none;" title="Скачать готовый Python-скрипт модели процесса">💾 Скачать .py</button>
+            <button class="tool-btn" onclick="copyCodeContent()">📋 Скопировать</button>
+          </div>
+        </div>
+        <pre class="code-content" id="codeOverlayContent"></pre>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ВЫБОРА И УПРАВЛЕНИЯ LLM И СКАНЕРА ПК -->
+  <div class="modal-backdrop" id="modelModalBackdrop" onclick="handleModalBackdropClick(event)">
+    <div class="modal-card" id="modelModalCard">
+      
+      <!-- Шапка модального окна -->
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🧠</div>
+          <div>
+            <h2 class="modal-title">Выбор и управление нейросетью LLM</h2>
+            <p class="modal-subtitle">Локальный запуск на вашем ПК (GGUF) или подключение внешних серверов (Ollama / LM Studio)</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeModelModal()" title="Закрыть">✕</button>
+      </div>
+
+      <!-- Аппаратный сканер ПК (Hardware Diagnostic) -->
+      <div class="hw-scanner-card" id="hwScannerCard">
+        <div class="hw-scanner-header">
+          <div class="hw-header-title">
+            <span>💻</span>
+            <span>Аппаратный сканер вашего ПК</span>
+            <span class="hw-badge" id="hwTierBadge">Сканирование...</span>
+          </div>
+          <button class="hw-refresh-btn" onclick="loadHardwareAndModels(true)" title="Повторить сканирование компонентов">
+            🔄 Пересканировать
+          </button>
+        </div>
+        
+        <div class="hw-metrics-grid">
+          <div class="hw-metric-item">
+            <span class="hw-metric-label">Оперативная память (RAM)</span>
+            <span class="hw-metric-val" id="hwRamVal">—</span>
+            <span class="hw-metric-sub" id="hwRamSub">—</span>
+          </div>
+          <div class="hw-metric-item">
+            <span class="hw-metric-label">Процессор (CPU)</span>
+            <span class="hw-metric-val" id="hwCpuVal">—</span>
+            <span class="hw-metric-sub" id="hwCpuSub">Потоков обработки</span>
+          </div>
+          <div class="hw-metric-item">
+            <span class="hw-metric-label">Видеокарта (GPU)</span>
+            <span class="hw-metric-val" id="hwGpuVal">—</span>
+            <span class="hw-metric-sub" id="hwGpuSub">—</span>
+          </div>
+          <div class="hw-metric-item">
+            <span class="hw-metric-label">Рекомендация сканера</span>
+            <span class="hw-metric-val" id="hwRecVal" style="color:var(--accent-energy);">—</span>
+            <span class="hw-metric-sub" id="hwRecSub">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Вкладки модального окна -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-models-catalog" onclick="switchModalTab('catalog')">
+          📦 Локальные модели (Bonsai 2 & Qwen)
+        </button>
+        <button class="modal-tab" id="tab-models-endpoint" onclick="switchModalTab('endpoint')">
+          🔌 Внешний сервер (Ollama / LM Studio)
+        </button>
+      </div>
+
+      <!-- Тело модального окна -->
+      <div class="modal-body">
+        
+        <!-- ВКЛАДКА 1: Каталог локальных моделей -->
+        <div class="tab-pane active" id="pane-models-catalog">
+          
+          <!-- Баннер активного скачивания -->
+          <div class="download-banner" id="downloadBanner" style="display:none;">
+            <div class="dl-info-row">
+              <div class="dl-title-box">
+                <span class="dl-spinner">⏳</span>
+                <div>
+                  <div class="dl-model-name" id="dlModelName">Загрузка модели...</div>
+                  <div class="dl-stats-text" id="dlStatsText">0 МБ / 0 МБ (0 МБ/с) • Осталось: 0с</div>
+                </div>
+              </div>
+              <button class="dl-cancel-btn" onclick="cancelDownload()" title="Отменить скачивание">
+                ✕ Отменить
+              </button>
+            </div>
+            <div class="dl-progress-track">
+              <div class="dl-progress-fill" id="dlProgressFill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Список карточек моделей -->
+          <div class="models-list" id="modelsList">
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+              ⏳ Опрашиваем аппаратный сканер и каталог моделей...
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ВКЛАДКА 2: Внешний сервер (Ollama / LM Studio) -->
+        <div class="tab-pane" id="pane-models-endpoint" style="display:none;">
+          <div class="endpoint-form-card">
+            <div class="endpoint-info-notice">
+              <span>💡</span>
+              <div>
+                Подключите локально запущенный <strong>Ollama</strong> (порт 11434), <strong>LM Studio</strong> (порт 1234), vLLM или любой совместимый с OpenAI API сервер.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="endpointUrl">URL API сервера (Base URL):</label>
+              <input type="text" id="endpointUrl" class="form-input" placeholder="http://localhost:11434/v1" value="http://localhost:11434/v1">
+              <span class="form-help">Примеры: <code>http://localhost:11434/v1</code> (Ollama), <code>http://localhost:1234/v1</code> (LM Studio)</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="endpointModel">Название модели в сервере:</label>
+              <input type="text" id="endpointModel" class="form-input" placeholder="qwen2.5:7b" value="qwen2.5:7b">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="endpointKey">API-ключ (если требуется):</label>
+              <input type="password" id="endpointKey" class="form-input" placeholder="Не обязателен для локальных серверов">
+            </div>
+
+            <div class="endpoint-actions">
+              <button class="btn-save-endpoint" onclick="saveCustomEndpoint()">
+                💾 Сохранить и использовать этот сервер
+              </button>
+              <span id="endpointSaveStatus" class="save-status-msg"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Подвал модального окна -->
+      <div class="modal-footer">
+        <div class="footer-note">
+          📁 Модели сохраняются локально в папке <code>models/</code> и не требуют повторной загрузки.
+        </div>
+        <button class="btn-close-modal" onclick="closeModelModal()">Готово</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ВЫБОРА ЯЗЫКА -->
+  <div class="modal-backdrop" id="langModalBackdrop" onclick="handleLangModalBackdropClick(event)">
+    <div class="modal-card lang-modal-card" id="langModalCard">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🌐</div>
+          <div>
+            <h2 class="modal-title" id="langModalTitle">Выберите язык / Select Language</h2>
+            <p class="modal-subtitle" id="langModalSubtitle">Схемы BPMN 2.0, логический аудит и ответы ИИ будут строиться на выбранном языке</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeLangModal()" id="langModalCloseBtn" title="Закрыть">✕</button>
+      </div>
+
+      <div class="lang-grid">
+        <div class="lang-card" onclick="selectLanguage('ru')" id="langCard-ru">
+          <div class="lang-card-flag">🇷🇺</div>
+          <div class="lang-card-content">
+            <div class="lang-card-name">Русский <span class="lang-card-code">RU</span></div>
+            <div class="lang-card-sub">Интерфейс, диаграммы BPMN 2.0 и аудит логики на русском языке</div>
+          </div>
+          <div class="lang-card-check">✓</div>
+        </div>
+
+        <div class="lang-card" onclick="selectLanguage('en')" id="langCard-en">
+          <div class="lang-card-flag">🇬🇧</div>
+          <div class="lang-card-content">
+            <div class="lang-card-name">English <span class="lang-card-code">EN</span></div>
+            <div class="lang-card-sub">User interface, BPMN 2.0 diagrams, and process audit in English</div>
+          </div>
+          <div class="lang-card-check">✓</div>
+        </div>
+
+        <div class="lang-card" onclick="selectLanguage('de')" id="langCard-de">
+          <div class="lang-card-flag">🇩🇪</div>
+          <div class="lang-card-content">
+            <div class="lang-card-name">Deutsch <span class="lang-card-code">DE</span></div>
+            <div class="lang-card-sub">Benutzeroberfläche, BPMN 2.0-Diagramme und Prüfung auf Deutsch</div>
+          </div>
+          <div class="lang-card-check">✓</div>
+        </div>
+
+        <div class="lang-card" onclick="selectLanguage('fr')" id="langCard-fr">
+          <div class="lang-card-flag">🇫🇷</div>
+          <div class="lang-card-content">
+            <div class="lang-card-name">Français <span class="lang-card-code">FR</span></div>
+            <div class="lang-card-sub">Interface utilisateur, schémas BPMN 2.0 et audit en français</div>
+          </div>
+          <div class="lang-card-check">✓</div>
+        </div>
+
+        <div class="lang-card" onclick="selectLanguage('es')" id="langCard-es">
+          <div class="lang-card-flag">🇪🇸</div>
+          <div class="lang-card-content">
+            <div class="lang-card-name">Español <span class="lang-card-code">ES</span></div>
+            <div class="lang-card-sub">Interfaz de usuario, diagramas BPMN 2.0 y auditoría en español</div>
+          </div>
+          <div class="lang-card-check">✓</div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn-primary-action" onclick="closeLangModal()" id="langConfirmBtn">Применить и продолжить →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/bpmn-js@17.11.1/dist/bpmn-modeler.development.js"></script>
+  <script>
+    // Состояние приложения
+    let currentXML = "";
+    let currentDSL = "";
+    let currentView = "canvas";
+    let modeler = null;
+    let chatHistory = [];
+    let latestAuditData = null;
+    let pendingAttachedText = "";
+
+    const BLANK_DIAGRAM_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0"
+                  xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0"
+                  id="Definitions_Blank"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Старт процесса" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="180" y="160" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="145" y="212" width="106" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+
+    // =========================================================================
+    // СЛОВАРЬ МУЛЬТИЯЗЫЧНОСТИ (5 ЯЗЫКОВ: RU, EN, DE, FR, ES)
+    // =========================================================================
+    const LANGUAGES = {
+      ru: {
+        code: "ru",
+        name: "Русский",
+        nativeName: "Русский",
+        flag: "🇷🇺",
+        sub: "Интерфейс, схемы BPMN 2.0 и аудит на русском языке",
+        appTitle: "BPMN Studio — AI BPMN Generator",
+        headerBrandTitle: "BPMN Studio",
+        headerBrandTag: "AI Generator",
+        
+        
+        mobileTabChat: "💬 Диалог",
+        mobileTabDiagram: "📊 Схема",
+        llmSelectTitle: "Выбрать LLM",
+        llmNotSelected: "Модель не выбрана",
+        llmLocalGguf: "GGUF локально",
+        llmServer: "Сервер",
+        themeTooltip: "Сменить тему",
+        langTooltip: "Сменить язык интерфейса / Switch language",
+        sidebarTitle: "AI-Бизнес-Аналитик",
+        statusReady: "🟢 Готов к работе",
+        statusClarification: "🟠 Требует уточнений",
+        statusApproved: "🟢 Согласовано",
+        btnNewProcess: "🔄 Новый процесс",
+        confirmResetChat: "Вы действительно хотите сбросить диалог и начать новый процесс?",
+        welcomeStatusTag: "Режим интерактивного аудита и моделирования",
+        welcomeText: "Здравствуйте! Я ваш ИИ-ассистент по бизнес-процессам. Опишите регламент простыми словами или прикрепите документ (Word, PDF, TXT).<br><br>Я проверю логику, выявлю пропущенные шаги или зоны ответственности и построю BPMN-схему в стандарте <strong>OMG BPMN 2.0</strong>.",
+        thinkingText: "ИИ проверяет логику регламента и рассчитывает топологию BPMN...",
+        fileExtractedPrefix: "📄 {name} ({size} КБ) — извлечение текста...",
+        fileReadyPrefix: "📄 {name} ({len} симв.)",
+        attachTooltip: "Прикрепить регламент (PDF, Word, TXT)",
+        chatPlaceholder: "Опишите процесс или ответьте на уточняющий вопрос...",
+        chatPlaceholderFile: "Файл {name} прикреплен. Введите комментарий или нажмите Отправить...",
+        sendTooltip: "Отправить (Enter)",
+        inputHint: "Enter — отправить, Shift+Enter — перенос строки",
+        charCountSuffix: "симв.",
+        issuesDetectedTitle: "⚠️ Обнаружены логические разрывы регламента ({count}):",
+        questionsTitle: "❓ Уточнения для завершения процесса:",
+        errorProcessPrefix: "Ошибка анализа процесса: ",
+        tabCanvas: "📊 Схема",
+        tabAudit: "📋 Логический аудит",
+        tabDsl: "🐍 Python-код",
+        tabXml: "📄 BPMN XML",
+        toolZoomIn: "🔍+",
+        toolZoomOut: "🔍-",
+        toolFit: "🎯 Центрировать",
+        toolPy: "🐍 .py",
+        toolBpmn: "💾 .bpmn",
+        toolSvg: "🖼 SVG",
+        toolBpmnIo: "↗ bpmn.io",
+        auditReportHeader: "📋 Отчет аудита бизнес-логики и регламента",
+        btnDownloadAudit: "📥 Скачать протокол (.txt)",
+        auditEmptyTitle: "Аудит процесса пока не проводился",
+        auditEmptyDesc: "Опишите процесс в чате или выберите типовой пример. ИИ проведет аудит логики, выявит разрывы и сформирует структурированный отчет.",
+        kpiReadiness: "Готовность регламента",
+        kpiLanes: "Зоны ответственности (Lanes)",
+        kpiTasks: "Операции (Tasks)",
+        kpiGateways: "Логические развилки",
+        kpiReadySub: "Готов к согласованию",
+        kpiReworkSub: "Требует доработки",
+        kpiRolesSub: "Ролей в процессе",
+        kpiStepsSub: "Смоделировано шагов",
+        kpiBranchSub: "Точек ветвления (XOR/AND)",
+        secLogicStatus: "Статус бизнес-логики: ",
+        secIssuesTitle: "Выявленные пробелы и открытые вопросы ({count})",
+        secNoIssues: "✅ Логических коллизий не обнаружено. Все альтернативные сценарии описаны, тупиковые шаги отсутствуют.",
+        secRecsTitle: "Рекомендации по оптимизации процесса",
+        rec1: "Регламентируйте максимальный срок согласования на каждом этапе (SLA).",
+        rec2: "Для автоматических уведомлений используйте интеграцию с корпоративной шиной данных (Service Task).",
+        rec3: "Спорные шаги, помеченные оранжевым цветом на схеме, согласуйте с владельцем процесса перед утверждением.",
+        auditProtocolTitle: "ПРОТОКОЛ ЛОГИЧЕСКОГО АУДИТА БИЗНЕС-ПРОЦЕССА",
+        auditProtocolAssTitle: "ИИ-Ассистент Архитектора | OMG BPMN 2.0 Studio",
+        auditProtocolDate: "Дата формирования: ",
+        auditProtocolStatus: "1. СТАТУС РЕГЛАМЕНТА: ",
+        auditProtocolDesc: "2. КРАТКОЕ ОПИСАНИЕ СМОДЕЛИРОВАННОГО ПРОЦЕССА:",
+        auditProtocolIssues: "3. ОБНАРУЖЕННЫЕ ЛОГИЧЕСКИЕ КОЛЛИЗИИ И БЕЛЫЕ ПЯТНА:",
+        auditProtocolQuestions: "4. ЗАДАННЫЕ УТОЧНЯЮЩИЕ ВОПРОСЫ:",
+        auditProtocolDSL: "5. ТЕХНИЧЕСКИЙ DSL-КОД ПРОЦЕССА:",
+        alertAuditFirst: "Сначала проведите анализ процесса в чате",
+        codeOverlayTitleXml: "BPMN 2.0 XML",
+        codeOverlayTitlePy: "Python DSL генерации схемы процесса",
+        btnDownloadPyTitle: "Скачать готовый Python-скрипт модели процесса",
+        btnDownloadPy: "💾 Скачать .py",
+        btnCopyCode: "📋 Скопировать",
+        copiedMsg: "Скопировано в буфер!",
+        modalModelTitle: "Выбор и управление нейросетью LLM",
+        modalModelSubtitle: "Локальный запуск на вашем ПК (GGUF) или подключение внешних серверов (Ollama / LM Studio)",
+        hwScannerTitle: "Аппаратный сканер вашего ПК",
+        hwScanning: "Сканирование...",
+        hwRescan: "🔄 Пересканировать",
+        hwRamLabel: "Оперативная память (RAM)",
+        hwCpuLabel: "Процессор (CPU)",
+        hwGpuLabel: "Видеокарта (GPU / NPU)",
+        hwRecLabel: "Рекомендация",
+        tabLocalModels: "🖥 Локальные модели (GGUF)",
+        tabExternalApi: "🌐 Внешний API (Ollama / LM Studio)",
+        btnDownloadModel: "⬇️ Скачать ({size} ГБ)",
+        btnDeleteModel: "🗑 Удалить",
+        btnActivateModel: "Активировать",
+        btnActiveBadge: "Активна ✅",
+        btnCancelDl: "✕ Отменить",
+        btnCloseDlBanner: "✕ Закрыть",
+        dlCompletedTitle: "Готово! {name} установлена",
+        dlCompletedDesc: "Файл сохранён в папку models/ и назначен активным для генерации.",
+        dlErrorTitle: "Ошибка скачивания: {name}",
+        dlErrorDesc: "Сбой при скачивании файла. Проверьте интернет и повторите попытку.",
+        btnSaveEndpoint: "Сохранить и подключить",
+        endpointUrlLabel: "URL локального эндпоинта (OpenAI-compatible):",
+        endpointModelLabel: "Имя модели в Ollama / LM Studio:",
+        endpointKeyLabel: "API-ключ (если требуется авторизация):",
+        footerNoteText: "📁 Модели сохраняются локально в папке <code>models/</code> и не требуют повторной загрузки.",
+        btnCloseModal: "Готово",
+        langModalTitle: "Выберите язык интерфейса и процессов",
+        langModalSubtitle: "Схемы BPMN 2.0, логический аудит и ответы ИИ будут строиться на выбранном языке",
+        langConfirmBtn: "Применить и продолжить →",
+        tabLocalModels: "Локальные модели (Bonsai 2 & Qwen)",
+        tabExternalApi: "Внешний сервер (Ollama / LM Studio)",
+        endpointNotice: "Подключите локально запущенный <strong>Ollama</strong> (порт 11434), <strong>LM Studio</strong> (порт 1234), vLLM или любой совместимый с OpenAI API сервер.",
+        hwTier_low: "Базовый ПК (Low)",
+        hwTier_medium: "Стандартный ПК (Medium)",
+        hwTier_high: "Производительный ПК (High)",
+        hwTier_ultra: "Рабочая станция (Ultra)",
+        hwRamAvailable: "доступно",
+        hwCpuThreadsUnit: "потоков обработки",
+        hwGpuCpuInference: "CPU инференс",
+        hwTierLevel: "Уровень:",
+        specParams: "Параметров:",
+        specFormat: "Формат:",
+        specSize: "Размер:",
+        specMinRam: "Мин. RAM:",
+        specRecRam: "рек. {size}",
+        unitGb: "ГБ",
+        unitMb: "МБ",
+        unitSpeed: "МБ/с",
+        dlPreparing: "⏳ Запуск...",
+        dlConnecting: "Подключение к репозиторию моделей...",
+        dlLoading: "Загрузка:",
+        dlEta: "Осталось:",
+        dlCancelBtn: "✕ Отменить",
+        dlCloseBtn: "✕ Закрыть",
+        confirmCancelDownload: "Вы уверены, что хотите отменить скачивание модели?",
+        confirmDeleteModel: "Удалить файл модели с диска для освобождения места?" 
+      },
+      en: {
+        code: "en",
+        name: "English",
+        nativeName: "English",
+        flag: "🇬🇧",
+        sub: "Interface, BPMN 2.0 diagrams, and process audit in English",
+        appTitle: "BPMN Studio — AI BPMN Generator",
+        headerBrandTitle: "BPMN Studio",
+        headerBrandTag: "AI Generator",
+        
+        
+        mobileTabChat: "💬 Chat",
+        mobileTabDiagram: "📊 Diagram",
+        llmSelectTitle: "Select LLM",
+        llmNotSelected: "No model selected",
+        llmLocalGguf: "Local GGUF",
+        llmServer: "Server",
+        themeTooltip: "Toggle theme",
+        langTooltip: "Change interface language",
+        sidebarTitle: "AI Business Analyst",
+        statusReady: "🟢 Ready for work",
+        statusClarification: "🟠 Needs clarification",
+        statusApproved: "🟢 Approved",
+        btnNewProcess: "🔄 New process",
+        confirmResetChat: "Are you sure you want to reset the dialogue and start a new process?",
+        welcomeStatusTag: "Interactive Audit & Modeling Mode",
+        welcomeText: "Hello! I am your AI Business Analyst assistant. Describe your regulation or business process in plain language or attach a document (Word, PDF, TXT).<br><br>I will verify business logic, identify missing steps or responsibility lanes, and construct a standard <strong>OMG BPMN 2.0</strong> diagram.",
+        thinkingText: "AI is verifying process logic and computing BPMN topology...",
+        fileExtractedPrefix: "📄 {name} ({size} KB) — extracting text...",
+        fileReadyPrefix: "📄 {name} ({len} chars)",
+        attachTooltip: "Attach regulation document (PDF, Word, TXT)",
+        chatPlaceholder: "Describe the process or answer a clarifying question...",
+        chatPlaceholderFile: "File {name} attached. Enter comments or click Send...",
+        sendTooltip: "Send (Enter)",
+        inputHint: "Enter to send, Shift+Enter for new line",
+        charCountSuffix: "chars",
+        issuesDetectedTitle: "⚠️ Process logic gaps detected ({count}):",
+        questionsTitle: "❓ Clarifications required to complete the process:",
+        errorProcessPrefix: "Process analysis error: ",
+        tabCanvas: "📊 Diagram",
+        tabAudit: "📋 Process Audit",
+        tabDsl: "🐍 Python Code",
+        tabXml: "📄 BPMN XML",
+        toolZoomIn: "🔍+",
+        toolZoomOut: "🔍-",
+        toolFit: "🎯 Fit View",
+        toolPy: "🐍 .py",
+        toolBpmn: "💾 .bpmn",
+        toolSvg: "🖼 SVG",
+        toolBpmnIo: "↗ bpmn.io",
+        auditReportHeader: "📋 Business Logic & Regulation Audit Report",
+        btnDownloadAudit: "📥 Download Report (.txt)",
+        auditEmptyTitle: "Process audit not performed yet",
+        auditEmptyDesc: "Describe a process in the chat or load a document. The AI will audit logic, pinpoint gaps, and generate a structured audit protocol.",
+        kpiReadiness: "Process Readiness",
+        kpiLanes: "Responsibility Lanes",
+        kpiTasks: "Tasks & Activities",
+        kpiGateways: "Decision Gateways",
+        kpiReadySub: "Ready for approval",
+        kpiReworkSub: "Needs refinement",
+        kpiRolesSub: "Roles in process",
+        kpiStepsSub: "Modeled steps",
+        kpiBranchSub: "Branch points (XOR/AND)",
+        secLogicStatus: "Business Logic Status: ",
+        secIssuesTitle: "Identified Gaps & Open Questions ({count})",
+        secNoIssues: "✅ No logical errors detected. All alternative branches are closed and no dead ends exist.",
+        secRecsTitle: "Process Optimization Recommendations",
+        rec1: "Define maximum approval SLA times for each process step.",
+        rec2: "Use automated Service Tasks and integration with message brokers for event notifications.",
+        rec3: "Align unconfirmed steps marked in orange on the diagram with the process owner prior to final approval.",
+        auditProtocolTitle: "BUSINESS PROCESS LOGICAL AUDIT PROTOCOL",
+        auditProtocolAssTitle: "AI Business Architect Assistant | OMG BPMN 2.0 Studio",
+        auditProtocolDate: "Generation Date: ",
+        auditProtocolStatus: "1. REGULATION STATUS: ",
+        auditProtocolDesc: "2. BRIEF SUMMARY OF MODELED PROCESS:",
+        auditProtocolIssues: "3. DETECTED LOGICAL GAPS AND UNRESOLVED POINTS:",
+        auditProtocolQuestions: "4. CLARIFYING QUESTIONS POSED:",
+        auditProtocolDSL: "5. TECHNICAL PYTHON DSL CODE:",
+        alertAuditFirst: "First perform a process analysis in the chat",
+        codeOverlayTitleXml: "BPMN 2.0 XML",
+        codeOverlayTitlePy: "Python DSL Process Diagram Model",
+        btnDownloadPyTitle: "Download executable Python process model",
+        btnDownloadPy: "💾 Download .py",
+        btnCopyCode: "📋 Copy Code",
+        copiedMsg: "Copied to clipboard!",
+        modalModelTitle: "LLM Selection & Model Management",
+        modalModelSubtitle: "Run locally on your PC (GGUF) or connect external API servers (Ollama / LM Studio)",
+        hwScannerTitle: "PC Hardware Diagnostic Scanner",
+        hwScanning: "Scanning hardware...",
+        hwRescan: "🔄 Rescan Hardware",
+        hwRamLabel: "System Memory (RAM)",
+        hwCpuLabel: "Processor (CPU)",
+        hwGpuLabel: "Graphics (GPU / NPU)",
+        hwRecLabel: "Recommendation",
+        tabLocalModels: "🖥 Local Models (GGUF)",
+        tabExternalApi: "🌐 External API (Ollama / LM Studio)",
+        btnDownloadModel: "⬇️ Download ({size} GB)",
+        btnDeleteModel: "🗑 Delete",
+        btnActivateModel: "Activate",
+        btnActiveBadge: "Active ✅",
+        btnCancelDl: "✕ Cancel",
+        btnCloseDlBanner: "✕ Close",
+        dlCompletedTitle: "Done! {name} installed",
+        dlCompletedDesc: "File saved to models/ directory and set as active for generation.",
+        dlErrorTitle: "Download error: {name}",
+        dlErrorDesc: "Failed to download model file. Check internet connectivity and retry.",
+        btnSaveEndpoint: "Save & Connect",
+        endpointUrlLabel: "Local Endpoint URL (OpenAI-compatible):",
+        endpointModelLabel: "Model Name in Ollama / LM Studio:",
+        endpointKeyLabel: "API Key (if required):",
+        footerNoteText: "📁 Models are stored locally in the <code>models/</code> folder without redundant downloads.",
+        btnCloseModal: "Done",
+        langModalTitle: "Select Interface & Process Language",
+        langModalSubtitle: "BPMN 2.0 diagrams, logical audit, and AI answers will be generated in your selected language",
+        langConfirmBtn: "Apply and Continue →",
+        tabLocalModels: "Local Models (Bonsai 2 & Qwen)",
+        tabExternalApi: "External Server (Ollama / LM Studio)",
+        endpointNotice: "Connect a locally running <strong>Ollama</strong> (port 11434), <strong>LM Studio</strong> (port 1234), vLLM or any OpenAI API compatible server.",
+        hwTier_low: "Entry-Level PC (Low)",
+        hwTier_medium: "Standard PC (Medium)",
+        hwTier_high: "High-Performance PC (High)",
+        hwTier_ultra: "Workstation (Ultra)",
+        hwRamAvailable: "available",
+        hwCpuThreadsUnit: "processing threads",
+        hwGpuCpuInference: "CPU Inference",
+        hwTierLevel: "Level:",
+        specParams: "Parameters:",
+        specFormat: "Format:",
+        specSize: "Size:",
+        specMinRam: "Min. RAM:",
+        specRecRam: "rec. {size}",
+        unitGb: "GB",
+        unitMb: "MB",
+        unitSpeed: "MB/s",
+        dlPreparing: "⏳ Starting...",
+        dlConnecting: "Connecting to model repository...",
+        dlLoading: "Downloading:",
+        dlEta: "Remaining:",
+        dlCancelBtn: "✕ Cancel",
+        dlCloseBtn: "✕ Close",
+        confirmCancelDownload: "Are you sure you want to cancel downloading the model?",
+        confirmDeleteModel: "Delete the model file from disk to free up space?" 
+      },
+      de: {
+        code: "de",
+        name: "Deutsch",
+        nativeName: "Deutsch",
+        flag: "🇩🇪",
+        sub: "Benutzeroberfläche, BPMN 2.0-Diagramme und Audit auf Deutsch",
+        appTitle: "BPMN Studio — AI BPMN Generator",
+        headerBrandTitle: "BPMN Studio",
+        headerBrandTag: "AI Generator",
+        
+        
+        mobileTabChat: "💬 Dialog",
+        mobileTabDiagram: "📊 Diagramm",
+        llmSelectTitle: "LLM auswählen",
+        llmNotSelected: "Kein Modell gewählt",
+        llmLocalGguf: "GGUF lokal",
+        llmServer: "Server",
+        themeTooltip: "Thema wechseln",
+        langTooltip: "Sprache der Benutzeroberfläche ändern",
+        sidebarTitle: "KI-Geschäftsanalyst",
+        statusReady: "🟢 Bereit zur Arbeit",
+        statusClarification: "🟠 Klärung erforderlich",
+        statusApproved: "🟢 Freigegeben",
+        btnNewProcess: "🔄 Neuer Prozess",
+        confirmResetChat: "Möchten Sie den Dialog wirklich zurücksetzen und einen neuen Prozess starten?",
+        welcomeStatusTag: "Interaktiver Audit- & Modellierungsmodus",
+        welcomeText: "Guten Tag! Ich bin Ihr KI-Geschäftsanalyst. Beschreiben Sie Ihren Ablauf in einfachen Worten oder laden Sie ein Dokument hoch (Word, PDF, TXT).<br><br>Ich prüfe die Logik, erkenne fehlende Schritte oder Zuständigkeiten und erstelle ein normgerechtes <strong>OMG BPMN 2.0</strong>-Diagramm.",
+        thinkingText: "KI prüft Prozesslogik und berechnet BPMN-Topologie...",
+        fileExtractedPrefix: "📄 {name} ({size} KB) — Text wird extrahiert...",
+        fileReadyPrefix: "📄 {name} ({len} Zeichen)",
+        attachTooltip: "Dokument anhängen (PDF, Word, TXT)",
+        chatPlaceholder: "Prozess beschreiben oder Klärungsfrage beantworten...",
+        chatPlaceholderFile: "Datei {name} angehängt. Kommentar eingeben oder Senden klicken...",
+        sendTooltip: "Senden (Enter)",
+        inputHint: "Enter zum Senden, Shift+Enter für Zeilenumbruch",
+        charCountSuffix: "Zeichen",
+        issuesDetectedTitle: "⚠️ Logische Prozesslücken erkannt ({count}):",
+        questionsTitle: "❓ Klärungen zum Abschluss des Prozesses:",
+        errorProcessPrefix: "Fehler bei der Prozessanalyse: ",
+        tabCanvas: "📊 Diagramm",
+        tabAudit: "📋 Logisches Audit",
+        tabDsl: "🐍 Python-Code",
+        tabXml: "📄 BPMN XML",
+        toolZoomIn: "🔍+",
+        toolZoomOut: "🔍-",
+        toolFit: "🎯 Zentrieren",
+        toolPy: "🐍 .py",
+        toolBpmn: "💾 .bpmn",
+        toolSvg: "🖼 SVG",
+        toolBpmnIo: "↗ bpmn.io",
+        auditReportHeader: "📋 Prüfbericht der Geschäftslogik und Reglements",
+        btnDownloadAudit: "📥 Protokoll herunterladen (.txt)",
+        auditEmptyTitle: "Prozess-Audit noch nicht durchgeführt",
+        auditEmptyDesc: "Beschreiben Sie einen Prozess im Chat. Die KI prüft die Logik, deckt Lücken auf und erstellt ein strukturiertes Prüfprotokoll.",
+        kpiReadiness: "Reifegrad des Reglements",
+        kpiLanes: "Verantwortungsbahnen (Lanes)",
+        kpiTasks: "Aktivitäten (Tasks)",
+        kpiGateways: "Entscheidungs-Gateways",
+        kpiReadySub: "Bereit zur Freigabe",
+        kpiReworkSub: "Nachbesserung nötig",
+        kpiRolesSub: "Rollen im Prozess",
+        kpiStepsSub: "Modellierte Schritte",
+        kpiBranchSub: "Verzweigungen (XOR/AND)",
+        secLogicStatus: "Status der Geschäftslogik: ",
+        secIssuesTitle: "Identifizierte Lücken und offene Fragen ({count})",
+        secNoIssues: "✅ Keine logischen Fehler festgestellt. Alle alternativen Pfade sind geschlossen, keine Sackgassen.",
+        secRecsTitle: "Empfehlungen zur Prozessoptimierung",
+        rec1: "Definieren Sie maximale Freigabefristen (SLA) für jeden Prozessschritt.",
+        rec2: "Nutzen Sie automatisierte Service Tasks für System- und Benachrichtigungsintegrationen.",
+        rec3: "Stimmen Sie orange markierte Schritte vor der finalen Freigabe mit dem Prozesseigentümer ab.",
+        auditProtocolTitle: "PRÜFPROTOKOLL DER PROZESSLOGIK",
+        auditProtocolAssTitle: "KI-Architekt-Assistent | OMG BPMN 2.0 Studio",
+        auditProtocolDate: "Erstellungsdatum: ",
+        auditProtocolStatus: "1. REGLEMENT-STATUS: ",
+        auditProtocolDesc: "2. KURZBESCHREIBUNG DES MODELLIERTEN PROZESSES:",
+        auditProtocolIssues: "3. ERMITTELTE LOGISCHE LÜCKEN UND OFFENE PUNKTE:",
+        auditProtocolQuestions: "4. GESTELLTE KLÄRUNGSFRAGEN:",
+        auditProtocolDSL: "5. TECHNISCHER PYTHON-DSL-CODE:",
+        alertAuditFirst: "Führen Sie zuerst eine Prozessanalyse im Chat durch",
+        codeOverlayTitleXml: "BPMN 2.0 XML",
+        codeOverlayTitlePy: "Python-DSL des Prozessmodells",
+        btnDownloadPyTitle: "Ausführbares Python-Prozessmodell herunterladen",
+        btnDownloadPy: "💾 Herunterladen .py",
+        btnCopyCode: "📋 Kopieren",
+        copiedMsg: "In die Zwischenablage kopiert!",
+        modalModelTitle: "Auswahl und Verwaltung des KI-Modells (LLM)",
+        modalModelSubtitle: "Lokaler Betrieb auf Ihrem PC (GGUF) oder Anbindung externer Server (Ollama / LM Studio)",
+        hwScannerTitle: "Hardware-Diagnose-Scanner Ihres PCs",
+        hwScanning: "Hardware wird gescannt...",
+        hwRescan: "🔄 Erneut scannen",
+        hwRamLabel: "Arbeitsspeicher (RAM)",
+        hwCpuLabel: "Prozessor (CPU)",
+        hwGpuLabel: "Grafikkarte (GPU / NPU)",
+        hwRecLabel: "Empfehlung",
+        tabLocalModels: "🖥 Lokale Modelle (GGUF)",
+        tabExternalApi: "🌐 Externe API (Ollama / LM Studio)",
+        btnDownloadModel: "⬇️ Herunterladen ({size} GB)",
+        btnDeleteModel: "🗑 Löschen",
+        btnActivateModel: "Aktivieren",
+        btnActiveBadge: "Aktiv ✅",
+        btnCancelDl: "✕ Abbrechen",
+        btnCloseDlBanner: "✕ Schließen",
+        dlCompletedTitle: "Fertig! {name} installiert",
+        dlCompletedDesc: "Datei im Ordner models/ gespeichert und für die Generierung aktiviert.",
+        dlErrorTitle: "Download-Fehler: {name}",
+        dlErrorDesc: "Fehler beim Herunterladen der Modelldatei. Verbindung prüfen und wiederholen.",
+        btnSaveEndpoint: "Speichern & Verbinden",
+        endpointUrlLabel: "Lokale Endpunkt-URL (OpenAI-kompatibel):",
+        endpointModelLabel: "Modellname in Ollama / LM Studio:",
+        endpointKeyLabel: "API-Schlüssel (falls erforderlich):",
+        footerNoteText: "📁 Modelle werden lokal im Ordner <code>models/</code> gespeichert.",
+        btnCloseModal: "Fertig",
+        langModalTitle: "Sprache für Oberfläche und Prozesse wählen",
+        langModalSubtitle: "BPMN 2.0-Diagramme, logisches Audit und KI-Antworten werden in der gewählten Sprache generiert",
+        langConfirmBtn: "Anwenden und Weiter →",
+        tabLocalModels: "Lokale Modelle (Bonsai 2 & Qwen)",
+        tabExternalApi: "Externer Server (Ollama / LM Studio)",
+        endpointNotice: "Verbinden Sie ein lokal laufendes <strong>Ollama</strong> (Port 11434), <strong>LM Studio</strong> (Port 1234), vLLM oder einen OpenAI-kompatiblen Server.",
+        hwTier_low: "Einsteiger-PC (Low)",
+        hwTier_medium: "Standard-PC (Medium)",
+        hwTier_high: "Leistungsstarker PC (High)",
+        hwTier_ultra: "Workstation (Ultra)",
+        hwRamAvailable: "verfügbar",
+        hwCpuThreadsUnit: "Verarbeitungsthreads",
+        hwGpuCpuInference: "CPU-Inferenz",
+        hwTierLevel: "Stufe:",
+        specParams: "Parameter:",
+        specFormat: "Format:",
+        specSize: "Größe:",
+        specMinRam: "Min. RAM:",
+        specRecRam: "empf. {size}",
+        unitGb: "GB",
+        unitMb: "MB",
+        unitSpeed: "MB/s",
+        dlPreparing: "⏳ Starten...",
+        dlConnecting: "Verbindung zum Modell-Repository wird hergestellt...",
+        dlLoading: "Herunterladen:",
+        dlEta: "Verbleibend:",
+        dlCancelBtn: "✕ Abbrechen",
+        dlCloseBtn: "✕ Schließen",
+        confirmCancelDownload: "Möchten Sie das Herunterladen des Modells wirklich abbrechen?",
+        confirmDeleteModel: "Modell-Datei von der Festplatte löschen, um Speicherplatz freizugeben?" 
+      },
+      fr: {
+        code: "fr",
+        name: "Français",
+        nativeName: "Français",
+        flag: "🇫🇷",
+        sub: "Interface, diagrammes BPMN 2.0 et audit logique en français",
+        appTitle: "BPMN Studio — AI BPMN Generator",
+        headerBrandTitle: "BPMN Studio",
+        headerBrandTag: "AI Generator",
+        
+        
+        mobileTabChat: "💬 Dialogue",
+        mobileTabDiagram: "📊 Schéma",
+        llmSelectTitle: "Sélectionner LLM",
+        llmNotSelected: "Aucun modèle sélectionné",
+        llmLocalGguf: "GGUF local",
+        llmServer: "Serveur",
+        themeTooltip: "Changer de thème",
+        langTooltip: "Changer la langue de l'interface",
+        sidebarTitle: "Analyste d'Affaires IA",
+        statusReady: "🟢 Prêt à l'emploi",
+        statusClarification: "🟠 Clarifications requises",
+        statusApproved: "🟢 Validé",
+        btnNewProcess: "🔄 Nouveau processus",
+        confirmResetChat: "Voulez-vous vraiment réinitialiser le dialogue et démarrer un nouveau processus ?",
+        welcomeStatusTag: "Mode Audit et Modélisation Interactifs",
+        welcomeText: "Bonjour ! Je suis votre assistant IA spécialisé dans les processus métier. Décrivez votre procédure en langage naturel ou déposez un fichier (Word, PDF, TXT).<br><br>Je vais auditer la logique, repérer les étapes manquantes ou les responsabilités et générer le schéma conforme <strong>OMG BPMN 2.0</strong>.",
+        thinkingText: "L'IA audite la logique métier et calcule la topologie BPMN...",
+        fileExtractedPrefix: "📄 {name} ({size} Ko) — extraction du texte...",
+        fileReadyPrefix: "📄 {name} ({len} car.)",
+        attachTooltip: "Joindre un document de procédure (PDF, Word, TXT)",
+        chatPlaceholder: "Décrivez le processus ou répondez à une question...",
+        chatPlaceholderFile: "Fichier {name} joint. Entrez un commentaire ou cliquez sur Envoyer...",
+        sendTooltip: "Envoyer (Entrée)",
+        inputHint: "Entrée pour envoyer, Maj+Entrée pour saut de ligne",
+        charCountSuffix: "car.",
+        issuesDetectedTitle: "⚠️ Ruptures logiques détectées ({count}) :",
+        questionsTitle: "❓ Clarifications nécessaires pour finaliser le processus :",
+        errorProcessPrefix: "Erreur lors de l'analyse du processus : ",
+        tabCanvas: "📊 Schéma",
+        tabAudit: "📋 Audit Logique",
+        tabDsl: "🐍 Code Python",
+        tabXml: "📄 BPMN XML",
+        toolZoomIn: "🔍+",
+        toolZoomOut: "🔍-",
+        toolFit: "🎯 Centrer",
+        toolPy: "🐍 .py",
+        toolBpmn: "💾 .bpmn",
+        toolSvg: "🖼 SVG",
+        toolBpmnIo: "↗ bpmn.io",
+        auditReportHeader: "📋 Rapport d'Audit de Logique Métier",
+        btnDownloadAudit: "📥 Télécharger rapport (.txt)",
+        auditEmptyTitle: "Aucun audit de processus réalisé pour l'instant",
+        auditEmptyDesc: "Décrivez un processus dans le chat. L'IA vérifiera la logique, identifiera les zones d'ombre et établira un protocole d'audit structuré.",
+        kpiReadiness: "Niveau de maturité",
+        kpiLanes: "Couloirs de responsabilité (Lanes)",
+        kpiTasks: "Tâches et activités (Tasks)",
+        kpiGateways: "Passerelles de décision",
+        kpiReadySub: "Prêt pour approbation",
+        kpiReworkSub: "À peaufiner",
+        kpiRolesSub: "Rôles dans le processus",
+        kpiStepsSub: "Étapes modélisées",
+        kpiBranchSub: "Points de décision (XOR/AND)",
+        secLogicStatus: "Statut de la logique métier : ",
+        secIssuesTitle: "Lacunes identifiées et questions en suspens ({count})",
+        secNoIssues: "✅ Aucune anomalie logique détectée. Toutes les branches alternatives sont fermées, aucune impasse.",
+        secRecsTitle: "Recommandations d'optimisation",
+        rec1: "Définissez un délai maximal de validation (SLA) pour chaque étape du processus.",
+        rec2: "Utilisez des Service Tasks automatisées pour les notifications d'événements.",
+        rec3: "Faites valider les étapes en surbrillance orange par le responsable métier avant approbation définitive.",
+        auditProtocolTitle: "PROTOCOLE D'AUDIT LOGIQUE DU PROCESSUS MÉTIER",
+        auditProtocolAssTitle: "Assistant Architecte IA | Studio OMG BPMN 2.0",
+        auditProtocolDate: "Date de génération : ",
+        auditProtocolStatus: "1. STATUT DE LA PROCÉDURE : ",
+        auditProtocolDesc: "2. SYNTHÈSE DU PROCESSUS MODÉLISÉ :",
+        auditProtocolIssues: "3. ANOMALIES LOGIQUES ET ZONES D'OMBRE DÉTECTÉES :",
+        auditProtocolQuestions: "4. QUESTIONS DE CLARIFICATION POSÉES :",
+        auditProtocolDSL: "5. CODE TECHNIQUE PYTHON DSL :",
+        alertAuditFirst: "Effectuez d'abord une analyse de processus dans le chat",
+        codeOverlayTitleXml: "BPMN 2.0 XML",
+        codeOverlayTitlePy: "DSL Python de modélisation du processus",
+        btnDownloadPyTitle: "Télécharger le modèle Python exécutable",
+        btnDownloadPy: "💾 Télécharger .py",
+        btnCopyCode: "📋 Copier",
+        copiedMsg: "Copié dans le presse-papiers !",
+        modalModelTitle: "Sélection et gestion du modèle IA (LLM)",
+        modalModelSubtitle: "Exécution locale sur votre PC (GGUF) ou connexion à des serveurs externes (Ollama / LM Studio)",
+        hwScannerTitle: "Scanner de diagnostic matériel de votre PC",
+        hwScanning: "Diagnostic en cours...",
+        hwRescan: "🔄 Relancer le diagnostic",
+        hwRamLabel: "Mémoire Vive (RAM)",
+        hwCpuLabel: "Processeur (CPU)",
+        hwGpuLabel: "Carte Graphique (GPU / NPU)",
+        hwRecLabel: "Recommandation",
+        tabLocalModels: "🖥 Modèles Locaux (GGUF)",
+        tabExternalApi: "🌐 API Externe (Ollama / LM Studio)",
+        btnDownloadModel: "⬇️ Télécharger ({size} Go)",
+        btnDeleteModel: "🗑 Supprimer",
+        btnActivateModel: "Activer",
+        btnActiveBadge: "Actif ✅",
+        btnCancelDl: "✕ Annuler",
+        btnCloseDlBanner: "✕ Fermer",
+        dlCompletedTitle: "Terminé ! {name} installé",
+        dlCompletedDesc: "Fichier enregistré dans le dossier models/ et activé pour la génération.",
+        dlErrorTitle: "Erreur de téléchargement : {name}",
+        dlErrorDesc: "Échec du téléchargement du modèle. Vérifiez votre connexion et réessayez.",
+        btnSaveEndpoint: "Enregistrer et Connecter",
+        endpointUrlLabel: "URL du point de terminaison local (compatible OpenAI) :",
+        endpointModelLabel: "Nom du modèle dans Ollama / LM Studio :",
+        endpointKeyLabel: "Clé d'API (si requise) :",
+        footerNoteText: "📁 Les modèles sont enregistrés localement dans le dossier <code>models/</code>.",
+        btnCloseModal: "Terminer",
+        langModalTitle: "Choisissez la langue de l'interface et des processus",
+        langModalSubtitle: "Les schémas BPMN 2.0, l'audit logique et les réponses de l'IA seront générés dans la langue choisie",
+        langConfirmBtn: "Appliquer et Continuer →",
+        tabLocalModels: "Modèles locaux (Bonsai 2 & Qwen)",
+        tabExternalApi: "Serveur externe (Ollama / LM Studio)",
+        endpointNotice: "Connectez un serveur local <strong>Ollama</strong> (port 11434), <strong>LM Studio</strong> (port 1234), vLLM ou tout serveur compatible OpenAI API.",
+        hwTier_low: "PC d'entrée de gamme (Low)",
+        hwTier_medium: "PC standard (Medium)",
+        hwTier_high: "PC haute performance (High)",
+        hwTier_ultra: "Station de travail (Ultra)",
+        hwRamAvailable: "disponibles",
+        hwCpuThreadsUnit: "threads de traitement",
+        hwGpuCpuInference: "Inférence CPU",
+        hwTierLevel: "Niveau :",
+        specParams: "Paramètres :",
+        specFormat: "Format :",
+        specSize: "Taille :",
+        specMinRam: "RAM min. :",
+        specRecRam: "rec. {size}",
+        unitGb: "Go",
+        unitMb: "Mo",
+        unitSpeed: "Mo/s",
+        dlPreparing: "⏳ Préparation...",
+        dlConnecting: "Connexion au référentiel de modèles...",
+        dlLoading: "Téléchargement :",
+        dlEta: "Restant :",
+        dlCancelBtn: "✕ Annuler",
+        dlCloseBtn: "✕ Fermer",
+        confirmCancelDownload: "Êtes-vous sûr de vouloir annuler le téléchargement du modèle ?",
+        confirmDeleteModel: "Supprimer le fichier de modèle du disque pour libérer de l'espace?" 
+      },
+      es: {
+        code: "es",
+        name: "Español",
+        nativeName: "Español",
+        flag: "🇪🇸",
+        sub: "Interfaz, esquemas BPMN 2.0 y auditoría lógica en español",
+        appTitle: "BPMN Studio — AI BPMN Generator",
+        headerBrandTitle: "BPMN Studio",
+        headerBrandTag: "AI Generator",
+        
+        
+        mobileTabChat: "💬 Diálogo",
+        mobileTabDiagram: "📊 Diagrama",
+        llmSelectTitle: "Seleccionar LLM",
+        llmNotSelected: "Sin modelo seleccionado",
+        llmLocalGguf: "GGUF local",
+        llmServer: "Servidor",
+        themeTooltip: "Cambiar tema",
+        langTooltip: "Cambiar idioma de la interfaz",
+        sidebarTitle: "Analista de Negocios IA",
+        statusReady: "🟢 Listo para trabajar",
+        statusClarification: "🟠 Requiere aclaraciones",
+        statusApproved: "🟢 Aprobado",
+        btnNewProcess: "🔄 Nuevo proceso",
+        confirmResetChat: "¿Está seguro de que desea reiniciar la conversación e iniciar un nuevo proceso?",
+        welcomeStatusTag: "Modo de Auditoría y Modelado Interactivo",
+        welcomeText: "¡Hola! Soy su asistente de IA para procesos de negocio. Describa su procedimiento en lenguaje cotidiano o adjunte un documento (Word, PDF, TXT).<br><br>Auditaré la lógica, detectaré pasos faltantes o áreas de responsabilidad y generaré el diagrama estándar <strong>OMG BPMN 2.0</strong>.",
+        thinkingText: "La IA está auditando la lógica y calculando la topología BPMN...",
+        fileExtractedPrefix: "📄 {name} ({size} KB) — extrayendo texto...",
+        fileReadyPrefix: "📄 {name} ({len} carac.)",
+        attachTooltip: "Adjuntar documento de procedimiento (PDF, Word, TXT)",
+        chatPlaceholder: "Describa el proceso o responda una pregunta aclaratoria...",
+        chatPlaceholderFile: "Archivo {name} adjunto. Ingrese un comentario o pulse Enviar...",
+        sendTooltip: "Enviar (Enter)",
+        inputHint: "Enter para enviar, Shift+Enter para salto de línea",
+        charCountSuffix: "carac.",
+        issuesDetectedTitle: "⚠️ Inconsistencias lógicas detectadas ({count}):",
+        questionsTitle: "❓ Aclaraciones necesarias para completar el proceso:",
+        errorProcessPrefix: "Error durante el análisis del proceso: ",
+        tabCanvas: "📊 Diagrama",
+        tabAudit: "📋 Auditoría Lógica",
+        tabDsl: "🐍 Código Python",
+        tabXml: "📄 BPMN XML",
+        toolZoomIn: "🔍+",
+        toolZoomOut: "🔍-",
+        toolFit: "🎯 Centrar",
+        toolPy: "🐍 .py",
+        toolBpmn: "💾 .bpmn",
+        toolSvg: "🖼 SVG",
+        toolBpmnIo: "↗ bpmn.io",
+        auditReportHeader: "📋 Informe de Auditoría de Lógica de Procesos",
+        btnDownloadAudit: "📥 Descargar informe (.txt)",
+        auditEmptyTitle: "Aún no se ha realizado la auditoría del proceso",
+        auditEmptyDesc: "Describa un proceso en el chat. La IA auditará la lógica, identificará vacíos y elaborará un informe estructurado.",
+        kpiReadiness: "Madurez del proceso",
+        kpiLanes: "Carriles de responsabilidad (Lanes)",
+        kpiTasks: "Tareas y actividades (Tasks)",
+        kpiGateways: "Compuertas de decisión",
+        kpiReadySub: "Listo para aprobación",
+        kpiReworkSub: "Requiere ajustes",
+        kpiRolesSub: "Roles en el proceso",
+        kpiStepsSub: "Pasos modelados",
+        kpiBranchSub: "Puntos de bifurcación (XOR/AND)",
+        secLogicStatus: "Estado de la lógica de negocio: ",
+        secIssuesTitle: "Brechas identificadas y preguntas abiertas ({count})",
+        secNoIssues: "✅ No se detectaron inconsistencias lógicas. Todos los caminos alternativos están cerrados sin callejones sin salida.",
+        secRecsTitle: "Recomendaciones de optimización",
+        rec1: "Defina tiempos límite de validación (SLA) para cada paso del proceso.",
+        rec2: "Utilice Service Tasks automatizadas para la integración de notificaciones.",
+        rec3: "Consulte los pasos marcados en naranja con el responsable del proceso antes de su aprobación definitiva.",
+        auditProtocolTitle: "PROTOCOLO DE AUDITORÍA LÓGICA DE PROCESOS",
+        auditProtocolAssTitle: "Asistente de Arquitectura de IA | Estudio OMG BPMN 2.0",
+        auditProtocolDate: "Fecha de generación: ",
+        auditProtocolStatus: "1. ESTADO DEL PROCEDIMIENTO: ",
+        auditProtocolDesc: "2. RESUMEN DEL PROCESO MODELADO:",
+        auditProtocolIssues: "3. INCONSISTENCIAS LÓGICAS Y VACÍOS DETECTADOS:",
+        auditProtocolQuestions: "4. PREGUNTAS ACLARATORIAS FORMULADAS:",
+        auditProtocolDSL: "5. CÓDIGO TÉCNICO PYTHON DSL:",
+        alertAuditFirst: "Primero realice un análisis del proceso en el chat",
+        codeOverlayTitleXml: "BPMN 2.0 XML",
+        codeOverlayTitlePy: "DSL Python de modelado del proceso",
+        btnDownloadPyTitle: "Descargar modelo ejecutable en Python",
+        btnDownloadPy: "💾 Descargar .py",
+        btnCopyCode: "📋 Copiar",
+        copiedMsg: "¡Copiado al portapapeles!",
+        modalModelTitle: "Selección y gestión del modelo de IA (LLM)",
+        modalModelSubtitle: "Ejecución local en su PC (GGUF) o conexión a servidores externos (Ollama / LM Studio)",
+        hwScannerTitle: "Escáner de diagnóstico de hardware del PC",
+        hwScanning: "Escaneando hardware...",
+        hwRescan: "🔄 Volver a escanear",
+        hwRamLabel: "Memoria RAM",
+        hwCpuLabel: "Procesador (CPU)",
+        hwGpuLabel: "Tarjeta Gráfica (GPU / NPU)",
+        hwRecLabel: "Recomendación",
+        tabLocalModels: "🖥 Modelos Locales (GGUF)",
+        tabExternalApi: "🌐 API Externa (Ollama / LM Studio)",
+        btnDownloadModel: "⬇️ Descargar ({size} GB)",
+        btnDeleteModel: "🗑 Eliminar",
+        btnActivateModel: "Activar",
+        btnActiveBadge: "Activo ✅",
+        btnCancelDl: "✕ Cancelar",
+        btnCloseDlBanner: "✕ Cerrar",
+        dlCompletedTitle: "¡Listo! {name} instalado",
+        dlCompletedDesc: "Archivo guardado en la carpeta models/ y activado para la generación.",
+        dlErrorTitle: "Error de descarga: {name}",
+        dlErrorDesc: "Fallo al descargar el archivo del modelo. Verifique la conexión y vuelva a intentarlo.",
+        btnSaveEndpoint: "Guardar y Conectar",
+        endpointUrlLabel: "URL del endpoint local (compatible con OpenAI):",
+        endpointModelLabel: "Nombre del modelo en Ollama / LM Studio:",
+        endpointKeyLabel: "Clave de API (si es requerida):",
+        footerNoteText: "📁 Los modelos se almacenan localmente en la carpeta <code>models/</code>.",
+        btnCloseModal: "Listo",
+        langModalTitle: "Seleccione el idioma de la interfaz y los procesos",
+        langModalSubtitle: "Los diagramas BPMN 2.0, la auditoría lógica y las respuestas de la IA se generarán en el idioma seleccionado",
+        langConfirmBtn: "Aplicar y Continuar →",
+        tabLocalModels: "Modelos locales (Bonsai 2 & Qwen)",
+        tabExternalApi: "Servidor externo (Ollama / LM Studio)",
+        endpointNotice: "Conecte un servidor local <strong>Ollama</strong> (puerto 11434), <strong>LM Studio</strong> (puerto 1234), vLLM o cualquier servidor compatible con OpenAI API.",
+        hwTier_low: "PC básico (Low)",
+        hwTier_medium: "PC estándar (Medium)",
+        hwTier_high: "PC de alto rendimiento (High)",
+        hwTier_ultra: "Estación de trabajo (Ultra)",
+        hwRamAvailable: "disponible",
+        hwCpuThreadsUnit: "hilos de procesamiento",
+        hwGpuCpuInference: "Inferencia CPU",
+        hwTierLevel: "Nivel:",
+        specParams: "Parámetros:",
+        specFormat: "Formato:",
+        specSize: "Tamaño:",
+        specMinRam: "RAM mín.:",
+        specRecRam: "rec. {size}",
+        unitGb: "GB",
+        unitMb: "MB",
+        unitSpeed: "MB/s",
+        dlPreparing: "⏳ Iniciando...",
+        dlConnecting: "Conectando al repositorio de modelos...",
+        dlLoading: "Descargando:",
+        dlEta: "Restante:",
+        dlCancelBtn: "✕ Cancelar",
+        dlCloseBtn: "✕ Cerrar",
+        confirmCancelDownload: "¿Está seguro de que desea cancelar la descarga del modelo?",
+        confirmDeleteModel: "¿Eliminar el archivo del modelo del disco para liberar espacio?" 
+      }
+    };
+
+    let currentLocale = localStorage.getItem("bpmn_locale") || null;
+    let isFirstVisitModal = false;
+
+    // Кеш данных аппаратной диагностики и моделей
+    window.lastActiveModelId = null;
+    window.lastDownloadState = null;
+    window.lastModelsList = [];
+    window.lastConfig = {};
+
+    function initLanguage() {
+      if (!currentLocale) {
+        currentLocale = "ru";
+        openLangModal(true); // Первый визит: показываем окно выбора языка перед началом работы!
+      } else {
+        applyLocale(currentLocale);
+      }
+    }
+
+    function openLangModal(firstVisit = false) {
+      isFirstVisitModal = firstVisit;
+      const backdrop = document.getElementById("langModalBackdrop");
+      if (!backdrop) return;
+      const closeBtn = document.getElementById("langModalCloseBtn");
+      if (closeBtn) {
+        closeBtn.style.display = firstVisit ? "none" : "block";
+      }
+      backdrop.classList.add("open");
+      backdrop.classList.add("active");
+
+      const current = currentLocale || "ru";
+      document.querySelectorAll(".lang-card").forEach(c => c.classList.remove("selected"));
+      const activeCard = document.getElementById(`langCard-${current}`);
+      if (activeCard) activeCard.classList.add("selected");
+    }
+
+    function closeLangModal() {
+      if (!localStorage.getItem("bpmn_locale")) {
+        localStorage.setItem("bpmn_locale", currentLocale || "ru");
+      }
+      const backdrop = document.getElementById("langModalBackdrop");
+      if (backdrop) {
+        backdrop.classList.remove("open");
+        backdrop.classList.remove("active");
+      }
+      isFirstVisitModal = false;
+    }
+
+    function handleLangModalBackdropClick(event) {
+      if (event.target.id === "langModalBackdrop" && !isFirstVisitModal) {
+        closeLangModal();
+      }
+    }
+
+    function selectLanguage(lang) {
+      applyLocale(lang);
+      closeLangModal();
+    }
+
+    function applyLocale(lang) {
+      if (!LANGUAGES[lang]) lang = "ru";
+      currentLocale = lang;
+      localStorage.setItem("bpmn_locale", lang);
+
+      const t = LANGUAGES[lang];
+      document.documentElement.lang = lang;
+      document.title = t.appTitle;
+
+      // Header
+      const flagEl = document.getElementById("headerLangFlag");
+      const codeEl = document.getElementById("headerLangCode");
+      if (flagEl) flagEl.innerText = t.flag;
+      if (codeEl) codeEl.innerText = lang.toUpperCase();
+
+      const brandTitleEl = document.querySelector(".brand-title");
+      if (brandTitleEl) {
+        brandTitleEl.innerHTML = `${t.headerBrandTitle} <span class="brand-tag">${t.headerBrandTag}</span>`;
+      }
+
+      // Mobile tabs
+      const tabBtnMobilePanel = document.getElementById("tab-btn-panel");
+      const tabBtnMobileDiag = document.getElementById("tab-btn-diagram");
+      if (tabBtnMobilePanel) tabBtnMobilePanel.innerText = t.mobileTabChat;
+      if (tabBtnMobileDiag) tabBtnMobileDiag.innerText = t.mobileTabDiagram;
+
+      // Header Tooltips
+      const themeBtn = document.getElementById("themeBtn");
+      if (themeBtn) themeBtn.title = t.themeTooltip;
+      const langSelectBtn = document.getElementById("langSelectBtn");
+      if (langSelectBtn) langSelectBtn.title = t.langTooltip;
+      const llmSelectBtn = document.getElementById("llmSelectBtn");
+      if (llmSelectBtn) llmSelectBtn.title = t.modalModelTitle;
+
+      // Sidebar
+      const sidebarTitleSpan = document.querySelector(".sidebar-title span:first-child");
+      if (sidebarTitleSpan) sidebarTitleSpan.innerText = t.sidebarTitle;
+
+      const btnReset = document.querySelector(".btn-reset-chat");
+      if (btnReset) btnReset.innerText = t.btnNewProcess;
+
+      // Update status badge if on default
+      const overallBadge = document.getElementById("overallStatusBadge");
+      if (overallBadge) {
+        if (overallBadge.classList.contains("ready")) {
+          overallBadge.innerText = t.statusReady;
+        } else if (overallBadge.classList.contains("complete")) {
+          overallBadge.innerText = t.statusApproved;
+        }
+      }
+
+      // Thinking text
+      const thinkingTextEl = document.getElementById("thinkingText");
+      if (thinkingTextEl) thinkingTextEl.innerText = t.thinkingText;
+
+      // Input & buttons
+      const chatInput = document.getElementById("chatInput");
+      if (chatInput && !chatInput.value) {
+        chatInput.placeholder = t.chatPlaceholder;
+      }
+      const btnAttach = document.querySelector(".btn-attach");
+      if (btnAttach) btnAttach.title = t.attachTooltip;
+      const btnSend = document.getElementById("btnSend");
+      if (btnSend) btnSend.title = t.sendTooltip;
+      const inputHint = document.querySelector(".input-hint span:first-child");
+      if (inputHint) inputHint.innerText = t.inputHint;
+
+      // Canvas toolbar
+      const tabCanvasSpan = document.querySelector("#tab-canvas span");
+      if (tabCanvasSpan) tabCanvasSpan.innerText = t.tabCanvas;
+      const tabAuditSpan = document.querySelector("#tab-audit span:first-child");
+      if (tabAuditSpan) tabAuditSpan.innerText = t.tabAudit;
+      const tabDslSpan = document.querySelector("#tab-dsl span");
+      if (tabDslSpan) tabDslSpan.innerText = t.tabDsl;
+      const tabXmlSpan = document.querySelector("#tab-xml span");
+      if (tabXmlSpan) tabXmlSpan.innerText = t.tabXml;
+
+      // Fit view button
+      const fitBtn = document.querySelector(".tool-btn[onclick*='fitView']");
+      if (fitBtn) fitBtn.innerHTML = t.toolFit;
+
+      // Audit overlay header
+      const auditTitle = document.querySelector("#audit-overlay .code-title");
+      if (auditTitle) auditTitle.innerText = t.auditReportHeader;
+      const btnDlAudit = document.querySelector("#audit-overlay .tool-btn");
+      if (btnDlAudit) btnDlAudit.innerText = t.btnDownloadAudit;
+
+      // Code overlay
+      const btnDlPy = document.getElementById("btnDownloadPy");
+      if (btnDlPy) btnDlPy.innerText = t.btnDownloadPy;
+      const btnCopy = document.querySelector("#code-overlay .tool-btn[onclick*='copyCodeContent']");
+      if (btnCopy) btnCopy.innerText = t.btnCopyCode;
+
+      // Model modal
+      const modalTitle = document.querySelector("#modelModalCard .modal-title");
+      if (modalTitle) modalTitle.innerText = t.modalModelTitle;
+      const modalSub = document.querySelector("#modelModalCard .modal-subtitle");
+      if (modalSub) modalSub.innerText = t.modalModelSubtitle;
+
+      const tabLocMod = document.getElementById("tab-models-catalog");
+      if (tabLocMod) tabLocMod.innerHTML = `📦 ${t.tabLocalModels}`;
+      const tabExtApi = document.getElementById("tab-models-endpoint");
+      if (tabExtApi) tabExtApi.innerHTML = `🔌 ${t.tabExternalApi}`;
+      const epNotice = document.querySelector(".endpoint-info-notice div");
+      if (epNotice && t.endpointNotice) epNotice.innerHTML = t.endpointNotice;
+
+      const hwScannerHeader = document.querySelector(".hw-header-title span:nth-child(2)");
+      if (hwScannerHeader) hwScannerHeader.innerText = t.hwScannerTitle;
+      const hwRefreshBtn = document.querySelector(".hw-refresh-btn");
+      if (hwRefreshBtn) hwRefreshBtn.innerText = t.hwRescan;
+
+      const hwRamLbl = document.querySelector(".hw-metric-item:nth-child(1) .hw-metric-label");
+      if (hwRamLbl) hwRamLbl.innerText = t.hwRamLabel;
+      const hwCpuLbl = document.querySelector(".hw-metric-item:nth-child(2) .hw-metric-label");
+      if (hwCpuLbl) hwCpuLbl.innerText = t.hwCpuLabel;
+      const hwGpuLbl = document.querySelector(".hw-metric-item:nth-child(3) .hw-metric-label");
+      if (hwGpuLbl) hwGpuLbl.innerText = t.hwGpuLabel;
+      const hwRecLbl = document.querySelector(".hw-metric-item:nth-child(4) .hw-metric-label");
+      if (hwRecLbl) hwRecLbl.innerText = t.hwRecLabel;
+
+      const epUrlLbl = document.querySelector("label[for='endpointUrl']");
+      if (epUrlLbl) epUrlLbl.innerText = t.endpointUrlLabel;
+      const epModLbl = document.querySelector("label[for='endpointModel']");
+      if (epModLbl) epModLbl.innerText = t.endpointModelLabel;
+      const epKeyLbl = document.querySelector("label[for='endpointKey']");
+      if (epKeyLbl) epKeyLbl.innerText = t.endpointKeyLabel;
+      const btnSaveEp = document.querySelector(".btn-save-endpoint");
+      if (btnSaveEp) btnSaveEp.innerText = t.btnSaveEndpoint;
+
+      const footerNote = document.querySelector("#modelModalCard .footer-note");
+      if (footerNote) footerNote.innerHTML = t.footerNoteText;
+      const btnCloseMod = document.querySelector("#modelModalCard .btn-close-modal");
+      if (btnCloseMod) btnCloseMod.innerText = t.btnCloseModal;
+
+      // Language modal texts
+      const langModalTitle = document.getElementById("langModalTitle");
+      if (langModalTitle) langModalTitle.innerText = t.langModalTitle;
+      const langModalSub = document.getElementById("langModalSubtitle");
+      if (langModalSub) langModalSub.innerText = t.langModalSubtitle;
+      const langConfirmBtn = document.getElementById("langConfirmBtn");
+      if (langConfirmBtn) langConfirmBtn.innerText = t.langConfirmBtn;
+
+      // Update selected card in lang modal
+      document.querySelectorAll(".lang-card").forEach(c => c.classList.remove("selected"));
+      const activeCard = document.getElementById(`langCard-${lang}`);
+      if (activeCard) activeCard.classList.add("selected");
+
+      // Re-render welcome message if chat is clean
+      if (chatHistory.length === 0) {
+        const chat = document.getElementById("chatMessages");
+        if (chat) {
+          chat.innerHTML = `
+            <div class="chat-bubble assistant">
+              <div class="bubble-body">
+                <div class="assistant-status-tag complete">
+                  <span>🤖</span>
+                  <span>${t.welcomeStatusTag}</span>
+                </div>
+                <div class="assistant-summary">
+                  ${t.welcomeText}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Re-render audit tab
+      renderAuditTab();
+
+      // Update model label if no model selected
+      updateActiveModelPill({
+        active_model_id: window.lastActiveModelId,
+        download_state: window.lastDownloadState,
+        models: window.lastModelsList,
+        config: window.lastConfig
+      });
+
+      // Перезагружаем каталог моделей и аппаратный статус на новом языке
+      if (typeof loadHardwareAndModels === "function") {
+        loadHardwareAndModels(false);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      initTheme();
+      initLanguage();
+      await initModeler();
+      setupChatInput();
+      renderAuditTab();
+      loadHardwareAndModels(false);
+    });
+
+    async function initModeler() {
+      modeler = new BpmnJS({
+        container: '#canvas',
+        keyboard: { bindTo: document }
+      });
+
+      modeler.on('commandStack.changed', async () => {
+        try {
+          const { xml } = await modeler.saveXML({ format: true });
+          currentXML = xml;
+        } catch (err) {}
+      });
+
+      await createNewDiagram();
+    }
+
+    async function createNewDiagram() {
+      try {
+        await modeler.importXML(BLANK_DIAGRAM_XML);
+        currentXML = BLANK_DIAGRAM_XML;
+      } catch (e) {
+        console.error("Ошибка инициализации диаграммы:", e);
+      }
+      setTimeout(() => fitView(), 150);
+    }
+
+    // НАСТРОЙКА ПОЛЯ ВВОДА ЧАТА
+    function setupChatInput() {
+      const textarea = document.getElementById("chatInput");
+      const charCount = document.getElementById("charCount");
+
+      textarea.addEventListener("input", () => {
+        textarea.style.height = "auto";
+        textarea.style.height = Math.min(textarea.scrollHeight, 140) + "px";
+        charCount.innerText = `${textarea.value.length} симв.`;
+      });
+
+      textarea.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSendClick();
+        }
+      });
+    }
+
+    // ОТПРАВКА СООБЩЕНИЯ
+    async function handleSendClick() {
+      const textarea = document.getElementById("chatInput");
+      let text = textarea.value.trim();
+
+      if (pendingAttachedText) {
+        if (text) {
+          text = `[Прикрепленный документ]:\n${pendingAttachedText}\n\n[Комментарий пользователя]:\n${text}`;
+        } else {
+          text = pendingAttachedText;
+        }
+        clearAttachedFile();
+      }
+
+      if (!text) return;
+
+      textarea.value = "";
+      textarea.style.height = "auto";
+      document.getElementById("charCount").innerText = "0 симв.";
+
+      await sendUserMessage(text);
+    }
+
+    async function sendUserMessage(text) {
+      appendUserBubble(text);
+
+      const thinking = document.getElementById("chatThinking");
+      const btnSend = document.getElementById("btnSend");
+      thinking.classList.add("active");
+      btnSend.disabled = true;
+
+      const isCgi = window.location.pathname.includes('.py') || window.location.hostname.includes('beget');
+      const endpoint = isCgi ? '/generate.py' : '/api/generate';
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            history: chatHistory,
+            current_dsl: currentDSL,
+            locale: currentLocale || 'ru'
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        // Обновляем состояние схемы
+        currentXML = data.xml;
+        currentDSL = data.dsl_code || "";
+        latestAuditData = data;
+
+        // Сохраняем в историю диалога
+        chatHistory.push({ role: 'user', content: text });
+        chatHistory.push({
+          role: 'assistant',
+          content: JSON.stringify({
+            status: data.status,
+            status_text: data.status_text,
+            summary: data.summary,
+            issues_detected: data.issues_detected,
+            clarifying_questions: data.clarifying_questions,
+            dsl_code: data.dsl_code
+          })
+        });
+
+        // Загружаем схему на холст bpmn-js
+        if (currentXML) {
+          await modeler.importXML(currentXML);
+          fitView();
+        }
+
+        // Отображаем ответ ассистента в ленте
+        appendAssistantBubble(data);
+
+        // Обновляем бейджи и вкладку аудита
+        updateStatusBadges(data);
+        renderAuditTab();
+
+        if (window.innerWidth <= 900 && currentXML) {
+          switchMobileView('diagram');
+        }
+
+      } catch (err) {
+        appendErrorBubble("Ошибка анализа процесса: " + err.message);
+      } finally {
+        thinking.classList.remove("active");
+        btnSend.disabled = false;
+        scrollChatToBottom();
+      }
+    }
+
+    function sendQuickReply(replyText) {
+      const textarea = document.getElementById("chatInput");
+      textarea.value = replyText;
+      handleSendClick();
+    }
+
+    // ДОБАВЛЕНИЕ СООБЩЕНИЙ В ЛЕНТУ
+    function appendUserBubble(text) {
+      const chat = document.getElementById("chatMessages");
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble user";
+      bubble.innerHTML = `
+        <div class="bubble-body">${escapeHtml(text)}</div>
+        <div class="bubble-meta">${formatTime(new Date())}</div>
+      `;
+      chat.appendChild(bubble);
+      scrollChatToBottom();
+    }
+
+    function appendAssistantBubble(data) {
+      const chat = document.getElementById("chatMessages");
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble assistant";
+
+      const isComplete = data.status === "complete";
+      const statusClass = isComplete ? "complete" : "warning";
+      const statusIcon = isComplete ? "🟢" : "⚠️";
+      const statusTitle = data.status_text || (isComplete ? "Диаграмма построена, логических ошибок не обнаружено" : "Диаграмма построена частично, требуются уточнения");
+
+      // Блок обнаруженных проблем/коллизий
+      let issuesHtml = "";
+      if (data.issues_detected && data.issues_detected.length > 0) {
+        issuesHtml = `
+          <div class="issues-card">
+            <div class="issues-card-title">
+              <span>⚠️ Обнаружены логические разрывы регламента (${data.issues_detected.length}):</span>
+            </div>
+            <ul class="issues-list">
+              ${data.issues_detected.map(issue => `<li class="issue-item">${escapeHtml(typeof issue === 'string' ? issue : (issue.description || JSON.stringify(issue)))}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      // Блок уточняющих вопросов с быстрыми ответами
+      let questionsHtml = "";
+      if (data.clarifying_questions && data.clarifying_questions.length > 0) {
+        questionsHtml = `
+          <div class="questions-card">
+            <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">
+              ❓ Уточнения для завершения процесса:
+            </div>
+            ${data.clarifying_questions.map((q, idx) => `
+              <div class="question-block">
+                <div class="question-text">
+                  <span>${idx + 1}.</span>
+                  <span>${escapeHtml(q.question || q)}</span>
+                </div>
+                ${q.quick_replies && q.quick_replies.length > 0 ? `
+                  <div class="quick-replies-wrap">
+                    ${q.quick_replies.map(opt => `
+                      <button class="quick-reply-chip" onclick="sendQuickReply('${escapeJsString(opt)}')">
+                        <span>💬</span>
+                        <span>${escapeHtml(opt)}</span>
+                      </button>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      bubble.innerHTML = `
+        <div class="bubble-body">
+          <div class="assistant-status-tag ${statusClass}">
+            <span>${statusIcon}</span>
+            <span>${escapeHtml(statusTitle)}</span>
+          </div>
+
+          ${data.summary ? `<div class="assistant-summary">${escapeHtml(data.summary).replace(/\n/g, '<br>')}</div>` : ''}
+          ${issuesHtml}
+          ${questionsHtml}
+        </div>
+      `;
+
+      chat.appendChild(bubble);
+      scrollChatToBottom();
+    }
+
+    function appendErrorBubble(errMsg) {
+      const chat = document.getElementById("chatMessages");
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble assistant";
+      bubble.innerHTML = `
+        <div class="bubble-body" style="border-color: rgba(239, 68, 68, 0.4);">
+          <div class="assistant-status-tag" style="background:var(--accent-error-bg); color:var(--accent-error);">
+            <span>⚠️</span>
+            <span>${escapeHtml(errMsg)}</span>
+          </div>
+        </div>
+      `;
+      chat.appendChild(bubble);
+      scrollChatToBottom();
+    }
+
+    function scrollChatToBottom() {
+      const chat = document.getElementById("chatMessages");
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // ОБНОВЛЕНИЕ БЕЙДЖЕЙ СТАТУСА
+    function updateStatusBadges(data) {
+      const topBadge = document.getElementById("overallStatusBadge");
+      const auditBadge = document.getElementById("auditBadgeCount");
+
+      const issuesCount = (data.issues_detected || []).length + (data.clarifying_questions || []).length;
+
+      const t = LANGUAGES[currentLocale || "ru"];
+      if (data.status === "complete") {
+        topBadge.className = "status-pill complete";
+        topBadge.innerHTML = t.statusApproved;
+        auditBadge.style.display = "none";
+      } else {
+        topBadge.className = "status-pill warning";
+        topBadge.innerHTML = `${t.statusClarification} (${issuesCount})`;
+        auditBadge.style.display = "inline-block";
+        auditBadge.innerText = issuesCount;
+      }
+    }
+
+    // ОТРИСОВКА ВКЛАДКИ «ЛОГИЧЕСКИЙ АУДИТ»
+    function renderAuditTab() {
+      const container = document.getElementById("auditBodyContent");
+      const t = LANGUAGES[currentLocale || "ru"];
+      if (!latestAuditData) {
+        container.innerHTML = `
+          <div style="text-align:center; padding: 40px 20px; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
+            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);">${t.auditEmptyTitle}</div>
+            <div style="font-size: 0.84rem; margin-top: 6px; max-width: 440px; margin-inline: auto;">
+              ${t.auditEmptyDesc}
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const d = latestAuditData;
+      const isComplete = d.status === "complete";
+      const issues = d.issues_detected || [];
+      const questions = d.clarifying_questions || [];
+
+      // Метрики процесса
+      const readinessPercent = isComplete ? 100 : Math.max(30, 100 - (issues.length * 20));
+      const laneMatches = (currentDSL.match(/add_pool/g) || []).length ? (currentDSL.match(/\[(.*?)\]/) || ["", "1, 2"])[1].split(',').length : 1;
+      const taskCount = (currentDSL.match(/add_(user_|service_|script_)?task/g) || []).length;
+      const gwCount = (currentDSL.match(/add_(exclusive_|parallel_|inclusive_)?gateway/g) || []).length;
+
+      container.innerHTML = `
+        <!-- KPI Сетка -->
+        <div class="audit-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">${t.kpiReadiness}</span>
+            <span class="kpi-val" style="color: ${isComplete ? 'var(--accent-success)' : 'var(--accent-warning)'};">${readinessPercent}%</span>
+            <span style="font-size:0.75rem; color:var(--text-soft);">${isComplete ? t.kpiReadySub : t.kpiReworkSub}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">${t.kpiLanes}</span>
+            <span class="kpi-val">${laneMatches}</span>
+            <span style="font-size:0.75rem; color:var(--text-soft);">${t.kpiRolesSub}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">${t.kpiTasks}</span>
+            <span class="kpi-val">${taskCount}</span>
+            <span style="font-size:0.75rem; color:var(--text-soft);">${t.kpiStepsSub}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">${t.kpiGateways}</span>
+            <span class="kpi-val">${gwCount}</span>
+            <span style="font-size:0.75rem; color:var(--text-soft);">${t.kpiBranchSub}</span>
+          </div>
+        </div>
+
+        <!-- Секция: Анализ бизнес-логики -->
+        <div class="audit-section-card">
+          <div class="audit-section-title">
+            <span>${isComplete ? '✅' : '⚠️'}</span>
+            <span>${t.secLogicStatus}${escapeHtml(d.status_text || '')}</span>
+          </div>
+          <div style="font-size:0.86rem; color:var(--text-muted); line-height: 1.5;">
+            ${escapeHtml(d.summary || 'BPMN 2.0')}
+          </div>
+        </div>
+
+        <!-- Секция: Обнаруженные белые пятна / коллизии -->
+        <div class="audit-section-card">
+          <div class="audit-section-title">
+            <span>🔎</span>
+            <span>${t.secIssuesTitle.replace('{count}', issues.length)}</span>
+          </div>
+          ${issues.length === 0 ? `
+            <div style="font-size:0.84rem; color:var(--accent-success); padding: 8px 12px; background:var(--accent-success-bg); border-radius:8px;">
+              ${t.secNoIssues}
+            </div>
+          ` : `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${issues.map((iss, i) => `
+                <div style="display:flex; align-items:flex-start; gap:8px; padding:8px 12px; background:var(--bg-surface-subtle); border-radius:8px; border-left: 3px solid var(--accent-warning);">
+                  <span style="color:var(--accent-warning); font-weight:700;">${i+1}.</span>
+                  <span style="font-size:0.84rem; color:var(--text-main);">${escapeHtml(typeof iss === 'string' ? iss : iss.description)}</span>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+
+        <!-- Секция: Рекомендации архитектора -->
+        <div class="audit-section-card">
+          <div class="audit-section-title">
+            <span>💡</span>
+            <span>${t.secRecsTitle}</span>
+          </div>
+          <ul style="padding-left:18px; font-size:0.84rem; color:var(--text-muted); display:flex; flex-direction:column; gap:6px;">
+            <li>${t.rec1}</li>
+            <li>${t.rec2}</li>
+            <li>${t.rec3}</li>
+          </ul>
+        </div>
+      `;
+    }
+
+    // СКАЧИВАНИЕ ПРОТОКОЛА АУДИТА
+    function downloadAuditReport() {
+      const t = LANGUAGES[currentLocale || "ru"] || LANGUAGES["ru"];
+      if (!latestAuditData) {
+        alert(t.alertAuditFirst || "Сначала проведите анализ процесса в чате");
+        return;
+      }
+
+      const d = latestAuditData;
+      const dateStr = new Date().toLocaleString(currentLocale || "ru");
+      let report = `====================================================\n`;
+      report += `${t.auditProtocolTitle}\n`;
+      report += `${t.auditProtocolAssTitle}\n`;
+      report += `${t.auditProtocolDate}${dateStr}\n`;
+      report += `====================================================\n\n`;
+
+      report += `${t.auditProtocolStatus}${d.status === 'complete' ? t.statusApproved : t.statusClarification}\n`;
+      report += `   ${d.status_text || ''}\n\n`;
+
+      report += `${t.auditProtocolDesc}\n`;
+      report += `   ${d.summary || ''}\n\n`;
+
+      report += `${t.auditProtocolIssues}\n`;
+      if (d.issues_detected && d.issues_detected.length > 0) {
+        d.issues_detected.forEach((iss, i) => {
+          report += `   [${i+1}] ${typeof iss === 'string' ? iss : iss.description}\n`;
+        });
+      } else {
+        report += `   - ${t.secNoIssues}\n`;
+      }
+      report += `\n`;
+
+      report += `${t.auditProtocolQuestions}\n`;
+      if (d.clarifying_questions && d.clarifying_questions.length > 0) {
+        d.clarifying_questions.forEach((q, i) => {
+          report += `   [${i+1}] ${q.question || q}\n`;
+          if (q.quick_replies) {
+            report += `       Options: ${q.quick_replies.join(' | ')}\n`;
+          }
+        });
+      } else {
+        report += `   -\n`;
+      }
+      report += `\n`;
+
+      report += `${t.auditProtocolDSL}\n`;
+      report += `----------------------------------------------------\n`;
+      report += d.dsl_code || '';
+      report += `\n----------------------------------------------------\n`;
+
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `audit_report_${Date.now()}.txt`;
+      a.click();
+    }
+
+    // СБРОС ДИАЛОГА И ПРОЦЕССА
+    async function resetConversation() {
+      if (chatHistory.length > 0) {
+        const t = LANGUAGES[currentLocale || "ru"];
+      if (!confirm(t.confirmResetChat)) {
+          return;
+        }
+      }
+
+      chatHistory = [];
+      latestAuditData = null;
+      currentXML = BLANK_DIAGRAM_XML;
+      currentDSL = "";
+      clearAttachedFile();
+      setAppMode('modeling');
+
+      const topBadge = document.getElementById("overallStatusBadge");
+      topBadge.className = "status-pill ready";
+      topBadge.innerHTML = t.statusReady;
+      document.getElementById("auditBadgeCount").style.display = "none";
+
+      const chat = document.getElementById("chatMessages");
+      chat.innerHTML = `
+        <div class="chat-bubble assistant">
+          <div class="bubble-body">
+            <div class="assistant-status-tag complete">
+              <span>🤖</span>
+              <span>${t.welcomeStatusTag}</span>
+            </div>
+            <div class="assistant-summary">
+              ${t.welcomeText}
+            </div>
+          </div>
+        </div>
+      `;
+
+      await createNewDiagram();
+      renderAuditTab();
+    }
+
+    // ШАБЛОНЫ БЫСТРОГО СТАРТА
+    function applyStarter(key) {
+      setAppMode('modeling');
+      if (key === 'instrument') {
+        sendUserMessage('Сотрудник цеха создает заявку на внеплановую замену измерительного прибора. Начальник участка согласовывает необходимость замены.');
+      } else if (key === 'grid') {
+        sendUserMessage('Владелец объекта подает электронную заявку в сбытовую компанию на технологическое присоединение мощности до 15 кВт. Оператор проверяет комплектность документов. Если с ошибками — возвращает с перечнем замечаний. Если в порядке — инженер выезжает на осмотр. При успешном осмотре устанавливается прибор учета и оформляется договор.');
+      } else if (key === 'turbine') {
+        sendUserMessage('При превышении предельной вибрации подшипника турбины ТЭС срабатывает аварийная защита. Начальник смены турбинного цеха подтверждает останов и переводит установку на валоповоротное устройство. Дежурный персонал фиксирует параметры.');
+      }
+    }
+
+    // ЗАГРУЗКА ФАЙЛОВ
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) processUploadedFile(file);
+    }
+
+    async function processUploadedFile(file) {
+      const fileChip = document.getElementById("fileChip");
+      const fileChipName = document.getElementById("fileChipName");
+      fileChipName.innerText = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} КБ) — извлечение текста...`;
+      fileChip.classList.add("active");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const isCgi = window.location.pathname.includes('.py') || window.location.hostname.includes('beget');
+        const endpoint = isCgi ? '/extract.py' : '/api/extract';
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        pendingAttachedText = data.text;
+        fileChipName.innerText = `📄 ${file.name} (${data.text.length} симв.)`;
+
+        const textarea = document.getElementById("chatInput");
+        textarea.placeholder = `Файл ${file.name} прикреплен. Введите комментарий или нажмите Отправить...`;
+        textarea.focus();
+
+      } catch (err) {
+        if (file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            pendingAttachedText = e.target.result;
+            fileChipName.innerText = `📄 ${file.name} (${pendingAttachedText.length} симв.)`;
+          };
+          reader.readAsText(file);
+        } else {
+          alert("Не удалось извлечь текст из файла: " + err.message);
+          clearAttachedFile();
+        }
+      }
+    }
+
+    function clearAttachedFile() {
+      pendingAttachedText = "";
+      document.getElementById("fileInput").value = "";
+      document.getElementById("fileChip").classList.remove("active");
+      document.getElementById("chatInput").placeholder = "Опишите процесс или ответьте на уточняющий вопрос...";
+    }
+
+    // ПЕРЕКЛЮЧЕНИЕ ВИДОВ
+    function switchView(view) {
+      currentView = view;
+      ['canvas', 'audit', 'xml', 'dsl'].forEach(v => {
+        const tab = document.getElementById(`tab-${v}`);
+        if (tab) tab.classList.toggle('active', v === view);
+      });
+
+      const codeOverlay = document.getElementById('code-overlay');
+      const auditOverlay = document.getElementById('audit-overlay');
+      const title = document.getElementById('codeOverlayTitle');
+      const content = document.getElementById('codeOverlayContent');
+
+      codeOverlay.classList.remove('active');
+      auditOverlay.classList.remove('active');
+
+      if (view === 'canvas') {
+        // Холст виден
+      } else if (view === 'audit') {
+        renderAuditTab();
+        auditOverlay.classList.add('active');
+      } else if (view === 'xml') {
+        title.innerText = '📄 BPMN 2.0.2 XML (Спецификация OMG с цветовыми маркерами)';
+        content.innerText = currentXML || "<!-- Диаграмма еще не создана. Опишите процесс в чате -->";
+        const btnPy = document.getElementById('btnDownloadPy');
+        if (btnPy) btnPy.style.display = 'none';
+        codeOverlay.classList.add('active');
+      } else if (view === 'dsl') {
+        title.innerText = '🐍 Python-код построения BPMN (API ПАО «Интер РАО»)';
+        content.innerText = getFullPythonScript();
+        const btnPy = document.getElementById('btnDownloadPy');
+        if (btnPy) btnPy.style.display = 'inline-flex';
+        codeOverlay.classList.add('active');
+      }
+    }
+
+    function getFullPythonScript() {
+      if (!currentDSL || !currentDSL.trim()) {
+        return "# =========================================================================\n" +
+               "# ИИ-Ассистент 'Архитектор BPMN' (ПАО «Интер РАО»)\n" +
+               "# Исполняемый Python-код создания диаграммы процесса\n" +
+               "# =========================================================================\n\n" +
+               "# Исходный Python-код построения BPMN появится здесь автоматически\n" +
+               "# после отправки описания регламента или шагов процесса в чат.\n";
+      }
+
+      return "# =========================================================================\n" +
+             "# ИИ-Ассистент 'Архитектор BPMN' (ПАО «Интер РАО»)\n" +
+             "# Исполняемый Python-код создания диаграммы процесса через программный интерфейс\n" +
+             "# =========================================================================\n\n" +
+             "from backend.bpmn_engine import DiagramBuilder\n\n" +
+             "# 1. Инициализация построителя диаграммы BPMN 2.0\n" +
+             "DIAGRAM = DiagramBuilder()\n" +
+             "ROOT_START_TASK_ID = DIAGRAM.start_id\n" +
+             "ROOT_END_TASK_ID = DIAGRAM.end_id\n\n" +
+             "# 2. Описание структуры процесса (пулы, дорожки, задачи, шлюзы и связи)\n" +
+             currentDSL.trim() + "\n\n" +
+             "# 3. Генерация строго валидного BPMN 2.0.2 XML со всеми координатами (BPMNDI)\n" +
+             "bpmn_xml = DIAGRAM.to_xml()\n" +
+             "print(f'Диаграмма успешно построена! Размер XML: {len(bpmn_xml)} байт')\n";
+    }
+
+    function downloadPython() {
+      const code = getFullPythonScript();
+      const blob = new Blob([code], { type: "text/x-python;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `process_model_${Date.now()}.py`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    function copyCodeContent() {
+      const content = document.getElementById('codeOverlayContent').innerText;
+      navigator.clipboard.writeText(content).then(() => {
+        alert("Код успешно скопирован в буфер обмена!");
+      });
+    }
+
+    // МАСШТАБ И ЭКСПОРТ
+    function zoomIn() {
+      if (modeler) modeler.get('zoomScroll').stepZoom(1);
+    }
+
+    function zoomOut() {
+      if (modeler) modeler.get('zoomScroll').stepZoom(-1);
+    }
+
+    function fitView() {
+      if (!modeler) return;
+      const canvas = modeler.get('canvas');
+      try {
+        const vb = canvas.viewbox();
+        if (!vb || !vb.inner || vb.inner.width === 0 || vb.inner.height === 0) {
+          canvas.zoom('fit-viewport');
+          return;
+        }
+
+        const isMobile = window.innerWidth <= 900;
+        const paddingTop = isMobile ? 65 : 85;
+        const paddingLeft = isMobile ? 25 : 85;
+        const paddingRight = isMobile ? 25 : 45;
+        const paddingBottom = isMobile ? 30 : 45;
+
+        const W = vb.outer.width;
+        const H = vb.outer.height;
+
+        const availW = Math.max(W - paddingLeft - paddingRight, 100);
+        const availH = Math.max(H - paddingTop - paddingBottom, 100);
+
+        const scaleW = availW / vb.inner.width;
+        const scaleH = availH / vb.inner.height;
+        let scale = Math.min(scaleW, scaleH);
+        scale = Math.min(scale, 1.05);
+
+        const screenCenterX = paddingLeft + (availW / 2);
+        const screenCenterY = paddingTop + (availH / 2);
+
+        const diagramCenterX = vb.inner.x + (vb.inner.width / 2);
+        const diagramCenterY = vb.inner.y + (vb.inner.height / 2);
+
+        const viewboxX = diagramCenterX - (screenCenterX / scale);
+        const viewboxY = diagramCenterY - (screenCenterY / scale);
+        const viewboxW = W / scale;
+        const viewboxH = H / scale;
+
+        canvas.viewbox({
+          x: viewboxX,
+          y: viewboxY,
+          width: viewboxW,
+          height: viewboxH
+        });
+      } catch (e) {
+        canvas.zoom('fit-viewport');
+      }
+    }
+
+    function downloadBPMN() {
+      if (!currentXML) {
+        alert("Сначала смоделируйте процесс");
+        return;
+      }
+      const blob = new Blob([currentXML], { type: 'application/xml;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `process_${Date.now()}.bpmn`;
+      a.click();
+    }
+
+    async function exportSVG() {
+      if (!modeler) return;
+      try {
+        const { svg } = await modeler.saveSVG();
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `process_diagram_${Date.now()}.svg`;
+        a.click();
+      } catch (err) {
+        alert("Не удалось экспортировать SVG: " + err.message);
+      }
+    }
+
+    function openBpmnIo() {
+      window.open('https://demo.bpmn.io', '_blank');
+    }
+
+    // ТЕМА
+    function initTheme() {
+      const savedTheme = localStorage.getItem("bpmn_theme_v2") || "light";
+      setTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme") || "light";
+      const next = current === "dark" ? "light" : "dark";
+      setTheme(next);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("bpmn_theme_v2", theme);
+      const sun = document.getElementById("themeIconSun");
+      const moon = document.getElementById("themeIconMoon");
+      if (theme === "dark") {
+        sun.style.display = "block";
+        moon.style.display = "none";
+      } else {
+        sun.style.display = "none";
+        moon.style.display = "block";
+      }
+    }
+
+    // МОБИЛЬНЫЙ ВИД
+    function switchMobileView(view) {
+      const sidebar = document.getElementById("sidebar");
+      const tab1 = document.getElementById("tab-btn-panel");
+      const tab2 = document.getElementById("tab-btn-diagram");
+      if (view === "panel") {
+        sidebar.classList.add("mobile-visible");
+        tab1.classList.add("active");
+        tab2.classList.remove("active");
+      } else {
+        sidebar.classList.remove("mobile-visible");
+        tab1.classList.remove("active");
+        tab2.classList.add("active");
+        setTimeout(() => fitView(), 100);
+      }
+    }
+
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeJsString(str) {
+      if (!str) return "";
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, ' ');
+    }
+
+    function formatTime(d) {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // =========================================================================
+    // УПРАВЛЕНИЕ LLM МОДЕЛЯМИ И СКАНЕРОМ ПК
+    // =========================================================================
+    let downloadPollTimer = null;
+    let cachedModelsData = null;
+
+    function openModelModal() {
+      const modal = document.getElementById("modelModalBackdrop");
+      if (modal) modal.classList.add("open");
+      loadHardwareAndModels();
+    }
+
+    function closeModelModal() {
+      const modal = document.getElementById("modelModalBackdrop");
+      if (modal) modal.classList.remove("open");
+    }
+
+    function handleModalBackdropClick(event) {
+      if (event.target.id === "modelModalBackdrop") {
+        closeModelModal();
+      }
+    }
+
+    function switchModalTab(tabId) {
+      document.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+
+      const btn = document.getElementById(`tab-models-${tabId}`);
+      const pane = document.getElementById(`pane-models-${tabId}`);
+      if (btn) btn.classList.add("active");
+      if (pane) {
+        pane.classList.add("active");
+        pane.style.display = "flex";
+      }
+      const otherId = tabId === 'catalog' ? 'endpoint' : 'catalog';
+      const otherPane = document.getElementById(`pane-models-${otherId}`);
+      if (otherPane) otherPane.style.display = "none";
+    }
+
+    async function loadHardwareAndModels(forceScan = false) {
+      try {
+        const loc = currentLocale || "ru";
+        const resp = await fetch(`/api/models?locale=${encodeURIComponent(loc)}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        cachedModelsData = data;
+
+        // 1. Отображаем данные аппаратного сканера
+        renderHardwareDiagnostic(data.hardware);
+
+        // 2. Обновляем статус активной модели в кнопке шапки
+        updateActiveModelPill(data);
+
+        // 3. Заполняем поля кастомного эндпоинта
+        if (data.config) {
+          const urlInput = document.getElementById("endpointUrl");
+          const modelInput = document.getElementById("endpointModel");
+          const keyInput = document.getElementById("endpointKey");
+          if (urlInput && data.config.custom_openai_url) urlInput.value = data.config.custom_openai_url;
+          if (modelInput && data.config.custom_openai_model) modelInput.value = data.config.custom_openai_model;
+          if (keyInput && data.config.custom_openai_key) keyInput.value = data.config.custom_openai_key;
+        }
+
+        // 4. Отрисовываем карточки моделей
+        renderModelCards(data.models, data.active_model_id, data.download_state);
+
+        // 5. Проверяем процесс скачивания
+        handleDownloadState(data.download_state);
+
+      } catch (err) {
+        console.error("Ошибка опроса каталога моделей:", err);
+      }
+    }
+
+    function renderHardwareDiagnostic(hw) {
+      if (!hw) return;
+      const t = LANGUAGES[currentLocale || "ru"];
+      const ram = hw.ram || {};
+      const primaryGpu = hw.primary_gpu || {};
+
+      const ramTotal = ram.total_gb ? `${ram.total_gb.toFixed(1)} ${t.unitGb || 'ГБ'}` : "—";
+      const ramAvail = ram.avail_gb ? `${ram.avail_gb.toFixed(1)} ${t.unitGb || 'ГБ'} ${t.hwRamAvailable || 'доступно'}` : "—";
+      const cpuVal = `${hw.cpu_cores || 4} ${t.hwCpuThreadsUnit || 'потоков'}`;
+      const isCpu = !primaryGpu.name || primaryGpu.vendor === "CPU" || primaryGpu.name.includes("CPU") || primaryGpu.total_vram_gb === 0;
+      const gpuName = isCpu ? (t.hwGpuCpuInference || "CPU инференс") : primaryGpu.name;
+      const gpuVram = primaryGpu.total_vram_gb > 0 ? `${primaryGpu.total_vram_gb} ${t.unitGb || 'ГБ'} VRAM` : "DirectML / CPU";
+
+      const ramValEl = document.getElementById("hwRamVal");
+      const ramSubEl = document.getElementById("hwRamSub");
+      const cpuValEl = document.getElementById("hwCpuVal");
+      const gpuValEl = document.getElementById("hwGpuVal");
+      const gpuSubEl = document.getElementById("hwGpuSub");
+      const tierBadgeEl = document.getElementById("hwTierBadge");
+      const recValEl = document.getElementById("hwRecVal");
+      const recSubEl = document.getElementById("hwRecSub");
+
+      if (ramValEl) ramValEl.innerText = ramTotal;
+      if (ramSubEl) ramSubEl.innerText = ramAvail;
+      if (cpuValEl) cpuValEl.innerText = cpuVal;
+      if (gpuValEl) gpuValEl.innerText = gpuName;
+      if (gpuSubEl) gpuSubEl.innerText = gpuVram;
+
+      const tierKey = 'hwTier_' + (hw.tier || 'medium');
+      if (tierBadgeEl) tierBadgeEl.innerText = t[tierKey] || hw.tier_label || "Стандартный ПК";
+      if (recValEl) recValEl.innerText = hw.rec_model_size || "До 7B / Bonsai-2";
+      if (recSubEl) recSubEl.innerText = `${t.hwTierLevel || 'Уровень:'} ${(hw.tier || 'MEDIUM').toUpperCase()}`;
+    }
+
+    function updateActiveModelPill(data) {
+      const activeId = data.active_model_id;
+      const titleEl = document.getElementById("currentModelLabel");
+      const subEl = document.getElementById("currentModelSub");
+      const dotEl = document.getElementById("llmStatusDot");
+      if (!titleEl || !subEl || !dotEl) return;
+
+      if (data.download_state && data.download_state.status === "downloading") {
+        titleEl.innerText = `Загрузка: ${data.download_state.model_name || 'GGUF'}`;
+        subEl.innerText = `${data.download_state.progress_percent}%`;
+        dotEl.classList.add("downloading");
+        return;
+      }
+
+      dotEl.classList.remove("downloading");
+
+      const t = LANGUAGES[currentLocale || "ru"];
+      window.lastActiveModelId = activeId;
+      window.lastDownloadState = data.download_state;
+      window.lastModelsList = data.models;
+      window.lastConfig = data.config;
+
+      if (!activeId || activeId === "rule_based_fallback") {
+        titleEl.innerText = t.llmSelectTitle;
+        subEl.innerText = t.llmNotSelected;
+      } else if (activeId === "custom_openai") {
+        const modelName = (data.config && data.config.custom_openai_model) || "OpenAI";
+        titleEl.innerText = `${t.llmServer}: ${modelName}`;
+        subEl.innerText = "Ollama / LM Studio";
+      } else {
+        const activeModel = (data.models || []).find(m => m.id === activeId);
+        if (activeModel) {
+          titleEl.innerText = activeModel.name;
+          subEl.innerText = activeModel.badge || t.llmLocalGguf;
+        } else {
+          titleEl.innerText = t.llmSelectTitle;
+          subEl.innerText = t.llmNotSelected;
+        }
+      }
+    }
+
+    function renderModelCards(models, activeId, dlState) {
+      const t = LANGUAGES[currentLocale || "ru"];
+      const container = document.getElementById("modelsList");
+      if (!container) return;
+
+      let html = "";
+
+      // Карточки моделей каталога
+      (models || []).forEach(m => {
+        const isActive = (m.id === activeId && m.is_downloaded);
+        const compatClass = m.compatibility === 'recommended' ? 'compat-recommended' :
+                            (m.compatibility === 'compatible' ? 'compat-compatible' : 'compat-insufficient');
+
+        const isCurrentlyDownloading = dlState && dlState.status === 'downloading' && dlState.model_id === m.id;
+
+        html += `
+          <div class="model-card ${isActive ? 'active-model' : ''}">
+            <div class="model-card-header">
+              <div class="model-title-row">
+                <span class="model-name">${escapeHtml(m.name)}</span>
+                <span class="model-badge-tag">${escapeHtml(m.badge)}</span>
+                <span class="model-compat-badge ${compatClass}">${escapeHtml(m.compatibility_badge)}</span>
+              </div>
+              <div class="model-card-actions">
+                ${m.is_downloaded ? `
+                  <button class="btn-model-action btn-model-delete" onclick="deleteModel('${m.id}')">
+                    ${t.btnDeleteModel}
+                  </button>
+                  ${isActive ? `
+                    <span class="btn-model-action btn-model-active">${t.btnActiveBadge}</span>
+                  ` : `
+                    <button class="btn-model-action btn-model-activate" onclick="activateModel('${m.id}')">
+                      ${t.btnActivateModel}
+                    </button>
+                  `}
+                ` : `
+                  ${isCurrentlyDownloading ? `
+                    <span class="btn-model-action" style="background:var(--accent-warning); color:#fff;">
+                      ⏳ (${dlState.progress_percent}%)...
+                    </span>
+                  ` : `
+                    <button class="btn-model-action btn-model-download" onclick="startDownloadModel('${m.id}')" ${dlState && dlState.status === 'downloading' ? 'disabled' : ''}>
+                      ${t.btnDownloadModel.replace('{size}', m.file_size_gb)}
+                    </button>
+                  `}
+                `}
+              </div>
+            </div>
+
+            <div class="model-desc">
+              ${escapeHtml(m.description)}
+              <div style="font-size:0.73rem; color:var(--text-soft); margin-top:4px;">${escapeHtml(m.compatibility_desc)}</div>
+            </div>
+
+            <div class="model-specs-row">
+              <span>${t.specParams || 'Параметров:'} <strong class="model-spec-val">${escapeHtml(m.params)}</strong></span>
+              <span>${t.specFormat || 'Формат:'} <strong class="model-spec-val">${escapeHtml(m.format)}</strong></span>
+              <span>${t.specSize || 'Размер:'} <strong class="model-spec-val">${m.file_size_gb} ${t.unitGb || 'ГБ'}</strong></span>
+              <span>${t.specMinRam || 'Мин. RAM:'} <strong class="model-spec-val">${m.min_ram_gb} ${t.unitGb || 'ГБ'}</strong> (${(t.specRecRam || 'рек. {size}').replace('{size}', m.rec_ram_gb + ' ' + (t.unitGb || 'ГБ'))})</span>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function handleDownloadState(dlState) {
+      const banner = document.getElementById("downloadBanner");
+      if (!banner) return;
+      const t = LANGUAGES[currentLocale || "ru"];
+
+      const fillEl = document.getElementById("dlProgressFill");
+      const nameEl = document.getElementById("dlModelName");
+      const statsEl = document.getElementById("dlStatsText");
+      const spinnerEl = banner.querySelector(".dl-spinner");
+      const cancelBtn = banner.querySelector(".dl-cancel-btn");
+
+      if (dlState && dlState.status === "downloading") {
+        banner.style.display = "flex";
+        banner.className = "download-banner";
+        if (spinnerEl) {
+          spinnerEl.innerText = "⏳";
+          spinnerEl.style.animation = "spin 2s infinite linear";
+        }
+        if (nameEl) nameEl.innerText = `${t.dlLoading || 'Загрузка:'} ${dlState.model_name || 'модели'}...`;
+        if (fillEl) {
+          fillEl.style.width = `${Math.max(5, dlState.progress_percent)}%`;
+          fillEl.style.background = "var(--accent-energy)";
+        }
+        if (statsEl) {
+          const mbUnit = t.unitMb || 'МБ';
+          const spdUnit = t.unitSpeed || 'МБ/с';
+          const etaText = t.dlEta || 'Осталось:';
+          statsEl.innerText = `${dlState.downloaded_mb} ${mbUnit} / ${dlState.total_mb} ${mbUnit} (${dlState.speed_mb_s} ${spdUnit}) • ${dlState.progress_percent}% • ${etaText} ${dlState.eta_seconds}s`;
+        }
+        if (cancelBtn) {
+          cancelBtn.innerText = t.dlCancelBtn || "✕ Отменить";
+          cancelBtn.title = "Отменить скачивание";
+        }
+
+        if (!downloadPollTimer) {
+          downloadPollTimer = setInterval(pollDownloadProgress, 600);
+        }
+      } else if (dlState && dlState.status === "error") {
+        banner.style.display = "flex";
+        banner.className = "download-banner download-error";
+        if (spinnerEl) {
+          spinnerEl.innerText = "⚠️";
+          spinnerEl.style.animation = "none";
+        }
+        if (nameEl) nameEl.innerText = `${t.dlErrorTitle || 'Ошибка скачивания:'} ${dlState.model_name || ''}`;
+        if (fillEl) {
+          fillEl.style.width = "100%";
+          fillEl.style.background = "var(--accent-error)";
+        }
+        if (statsEl) {
+          statsEl.innerText = `${dlState.error || (t.dlErrorDesc || 'Сбой при скачивании файла.')}`;
+        }
+        if (cancelBtn) {
+          cancelBtn.innerText = t.dlCloseBtn || "✕ Закрыть";
+          cancelBtn.title = "Сбросить ошибку";
+        }
+      } else if (dlState && dlState.status === "completed") {
+        banner.style.display = "flex";
+        banner.className = "download-banner download-completed";
+        if (spinnerEl) {
+          spinnerEl.innerText = "✅";
+          spinnerEl.style.animation = "none";
+        }
+        const compTitle = (t.dlCompletedTitle || "Готово! {name} установлена").replace('{name}', dlState.model_name || 'Модель');
+        if (nameEl) nameEl.innerText = compTitle;
+        if (fillEl) {
+          fillEl.style.width = "100%";
+          fillEl.style.background = "var(--accent-success)";
+        }
+        if (statsEl) {
+          statsEl.innerText = t.dlCompletedDesc || "Файл сохранён в папку models/ и назначен активным для генерации.";
+        }
+        if (cancelBtn) {
+          cancelBtn.innerText = t.dlCloseBtn || "✕ Закрыть";
+          cancelBtn.title = "Закрыть уведомление";
+        }
+      } else {
+        banner.style.display = "none";
+        if (downloadPollTimer) {
+          clearInterval(downloadPollTimer);
+          downloadPollTimer = null;
+        }
+      }
+    }
+
+    async function pollDownloadProgress() {
+      try {
+        const resp = await fetch("/api/models/download-progress");
+        if (!resp.ok) return;
+        const dlState = await resp.json();
+
+        handleDownloadState(dlState);
+
+        if (dlState.status === "completed" || dlState.status === "error" || dlState.status === "cancelled") {
+          if (downloadPollTimer) {
+            clearInterval(downloadPollTimer);
+            downloadPollTimer = null;
+          }
+          await loadHardwareAndModels();
+        }
+      } catch (e) {
+        console.error("Ошибка опроса статуса скачивания:", e);
+      }
+    }
+
+    async function startDownloadModel(modelId) {
+      const t = LANGUAGES[currentLocale || "ru"];
+      const targetBtn = document.querySelector(`button[onclick*="startDownloadModel('${modelId}')"]`);
+      if (targetBtn) {
+        targetBtn.disabled = true;
+        targetBtn.innerText = t.dlPreparing || "⏳ Запуск...";
+      }
+
+      const banner = document.getElementById("downloadBanner");
+      if (banner) {
+        banner.style.display = "flex";
+        banner.className = "download-banner";
+        const nameEl = document.getElementById("dlModelName");
+        const statsEl = document.getElementById("dlStatsText");
+        const fillEl = document.getElementById("dlProgressFill");
+        if (nameEl) nameEl.innerText = `${t.dlPreparing || 'Подготовка...'} (${modelId})`;
+        if (statsEl) statsEl.innerText = t.dlConnecting || "Подключение к репозиторию моделей...";
+        if (fillEl) {
+          fillEl.style.width = "10%";
+          fillEl.style.background = "var(--accent-energy)";
+        }
+      }
+
+      try {
+        const resp = await fetch("/api/models/download", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model_id: modelId })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          if (banner) {
+            banner.className = "download-banner download-error";
+            const statsEl = document.getElementById("dlStatsText");
+            if (statsEl) statsEl.innerText = data.detail || data.error || (t.dlErrorDesc || "Сбой запуска скачивания.");
+          }
+          if (targetBtn) targetBtn.disabled = false;
+          return;
+        }
+        await loadHardwareAndModels();
+        if (!downloadPollTimer) {
+          downloadPollTimer = setInterval(pollDownloadProgress, 600);
+        }
+      } catch (err) {
+        if (banner) {
+          banner.className = "download-banner download-error";
+          const statsEl = document.getElementById("dlStatsText");
+          if (statsEl) statsEl.innerText = err.message;
+        }
+        if (targetBtn) targetBtn.disabled = false;
+      }
+    }
+
+    async function cancelDownload() {
+      const banner = document.getElementById("downloadBanner");
+      if (banner && (banner.classList.contains("download-error") || banner.classList.contains("download-completed"))) {
+        try {
+          await fetch("/api/models/cancel-download", { method: "POST" });
+          await loadHardwareAndModels();
+        } catch (err) {
+          console.error("Ошибка сброса:", err);
+        }
+        return;
+      }
+
+      const t = LANGUAGES[currentLocale || "ru"]; if (!confirm(t.confirmCancelDownload || "Вы уверены, что хотите отменить скачивание модели?")) return;
+      try {
+        await fetch("/api/models/cancel-download", { method: "POST" });
+        await loadHardwareAndModels();
+      } catch (err) {
+        console.error("Ошибка отмены:", err);
+      }
+    }
+
+    async function activateModel(modelId) {
+      try {
+        const resp = await fetch("/api/models/activate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model_id: modelId })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          alert("Не удалось активировать модель: " + (data.detail || data.error));
+          return;
+        }
+        await loadHardwareAndModels();
+      } catch (err) {
+        alert("Ошибка активации: " + err.message);
+      }
+    }
+
+    async function deleteModel(modelId) {
+      const t = LANGUAGES[currentLocale || "ru"]; if (!confirm(t.confirmDeleteModel || "Удалить файл модели с диска для освобождения места?")) return;
+      try {
+        const resp = await fetch("/api/models/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model_id: modelId })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          alert("Ошибка удаления: " + (data.detail || data.error));
+          return;
+        }
+        await loadHardwareAndModels();
+      } catch (err) {
+        alert("Ошибка при обращении к серверу: " + err.message);
+      }
+    }
+
+    async function saveCustomEndpoint() {
+      const url = document.getElementById("endpointUrl").value.trim();
+      const model = document.getElementById("endpointModel").value.trim();
+      const key = document.getElementById("endpointKey").value.trim();
+      const statusEl = document.getElementById("endpointSaveStatus");
+
+      if (!url) {
+        alert("Пожалуйста, укажите URL сервера (например, http://localhost:11434/v1)");
+        return;
+      }
+
+      try {
+        statusEl.innerText = "Сохранение...";
+        const resp = await fetch("/api/models/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            custom_openai_url: url,
+            custom_openai_model: model || "qwen2.5:7b",
+            custom_openai_key: key
+          })
+        });
+
+        if (!resp.ok) throw new Error("Сервер вернул ошибку");
+
+        // Активируем внешний эндпоинт
+        await activateModel("custom_openai");
+
+        statusEl.innerText = "Сервер сохранён и активен! ✅";
+        setTimeout(() => {
+          statusEl.innerText = "";
+        }, 3000);
+      } catch (err) {
+        statusEl.innerText = "Ошибка сохранения ❌";
+        alert("Не удалось сохранить параметры сервера: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
