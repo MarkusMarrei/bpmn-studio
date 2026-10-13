@@ -80,6 +80,7 @@ Whether you run it completely offline on a low-spec laptop or connect it to high
 bpmn-studio/
 ├── app.py                    # FastAPI / Uvicorn server (REST API & Web UI)
 ├── run.bat                   # 1-Click Windows Desktop Launcher
+├── run.sh                    # 1-Click Linux / macOS Bash Launcher
 ├── requirements.txt          # Python dependencies
 ├── LICENSE                   # Apache 2.0 License (Markus Marrei)
 ├── assets/                   # Project banner, mascot & high-resolution screenshots
@@ -104,6 +105,12 @@ Double-click `run.bat` in the repository root. The launcher will automatically:
 1. Verify Python 3.10+ installation.
 2. Install dependencies if missing.
 3. Start the server and launch your default browser at `http://localhost:8000`.
+
+### Linux / macOS (One-Command)
+```bash
+chmod +x run.sh
+./run.sh
+```
 
 ### Manual CLI Launch
 
