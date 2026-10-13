@@ -1,13 +1,19 @@
+<p align="center">
+  <img src="assets/banner.jpg" alt="BPMN Studio Banner" width="100%">
+</p>
+
 # BPMN Studio (⚡ bpmn-studio)
 
-> **AI BPMN Generator** — Local, privacy-first AI Studio for Text-to-BPMN 2.0 process modeling with quantized LLMs (Bonsai 2 & Qwen) and 5-language support (RU, EN, DE, FR, ES).  
-> Transform text regulations, SOPs, and documents (PDF, DOCX, TXT) into production-ready OMG BPMN 2.0 diagrams with intelligent business-logic auditing.
+> **Local, Privacy-First AI Studio for Text-to-BPMN 2.0 Process Modeling**  
+> Transform unstructured SOPs, regulations, and business documents (PDF, DOCX, TXT) into production-ready OMG BPMN 2.0 diagrams with intelligent logic verification and local quantized LLMs.
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python Version](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-green.svg)](https://www.python.org/)
-[![OMG BPMN 2.0](https://img.shields.io/badge/BPMN-2.0.2%20Compliant-orange.svg)](https://www.omg.org/spec/BPMN/2.0/)
-[![Local LLM](https://img.shields.io/badge/Local%20LLM-Bonsai%202%20%7C%20Qwen%202.5-purple.svg)](https://huggingface.co/prism-ml/Bonsai-2-27B-GGUF)
-[![Languages](https://img.shields.io/badge/Languages-RU%20%7C%20EN%20%7C%20DE%20%7C%20FR%20%7C%20ES-blueviolet.svg)](#)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-green.svg" alt="Python"></a>
+  <a href="https://www.omg.org/spec/BPMN/2.0/"><img src="https://img.shields.io/badge/BPMN-2.0.2%20Compliant-orange.svg" alt="BPMN 2.0"></a>
+  <a href="https://huggingface.co/prism-ml/Bonsai-2-27B-GGUF"><img src="https://img.shields.io/badge/Local%20LLM-Bonsai%202%20%7C%20Qwen%202.5-purple.svg" alt="Local LLM"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Languages-RU%20%7C%20EN%20%7C%20DE%20%7C%20FR%20%7C%20ES-blueviolet.svg" alt="Languages"></a>
+</p>
 
 ---
 
@@ -16,6 +22,21 @@
 **BPMN Studio** is an open-source, privacy-first desktop application designed for business analysts, enterprise architects, and software engineers. It enables running quantized state-of-the-art LLMs locally on consumer hardware to parse complex operational procedures and automatically generate validated, beautiful **BPMN 2.0 XML** diagrams.
 
 Whether you run it completely offline on a low-spec laptop or connect it to high-end GPUs and local servers (Ollama, LM Studio), the system automatically adapts to your hardware capabilities.
+
+---
+
+## 📸 Screenshots
+
+| 🎨 Interactive Diagram Canvas & AI Chat | 🔍 Real-Time Business Logic Audit |
+| :---: | :---: |
+| ![Interactive Diagram Canvas](assets/screenshot-diagram.png) | ![Business Logic Audit](assets/screenshot-audit.png) |
+| *Visual multi-lane BPMN 2.0 modeling with live chat assistance & logic clarification* | *Automated 80%+ readiness score, dead-end discovery & recommendations* |
+
+### ⚙️ Hardware Diagnostic Scanner & Local Model Catalog
+<p align="center">
+  <img src="assets/screenshot-models.png" alt="Hardware Scanner & Model Catalog" width="100%">
+</p>
+<p align="center"><em>Automatic hardware classification, memory evaluation, and 1-click GGUF model manager (Bonsai 2 & Qwen)</em></p>
 
 ---
 
@@ -61,6 +82,7 @@ bpmn-studio/
 ├── run.bat                   # 1-Click Windows Desktop Launcher
 ├── requirements.txt          # Python dependencies
 ├── LICENSE                   # Apache 2.0 License (Markus Marrei)
+├── assets/                   # Project banner, mascot & high-resolution screenshots
 ├── backend/
 │   ├── hardware_scanner.py   # Native RAM / CPU / GPU hardware scanner
 │   ├── model_manager.py      # LLM catalog, download tracker & compatibility evaluator
